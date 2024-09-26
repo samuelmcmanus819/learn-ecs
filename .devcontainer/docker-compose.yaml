@@ -1,9 +1,0 @@
-version: '3'
-
-services:
-  devcontainer:
-    image: aws_terraform:latest
-    volumes:
-      - "~/.aws/credentials:/root/.aws/credentials"
-      - ../:/workspace
-    entrypoint: "tail -f /dev/null"
