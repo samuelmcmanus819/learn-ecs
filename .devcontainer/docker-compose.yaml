@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+  devcontainer:
+    image: ubuntu:latest
+    volumes:
+      - "~/.aws/credentials:/root/.aws/credentials"
+      - ../:/workspace
+    entrypoint: "tail -f /dev/null"
