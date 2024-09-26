@@ -1,0 +1,3 @@
+[submodule ".devcontainer"]
+	path = .devcontainer
+	url = https://github.com/samuelmcmanus819/Terraform-AWS-Devcontainer
