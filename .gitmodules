@@ -1,3 +1,7 @@
 [submodule ".devcontainer"]
 	path = .devcontainer
 	url = https://github.com/samuelmcmanus819/Terraform-AWS-Devcontainer
+
+[submodule "learn-jenkins-app"]
+	path = learn-jenkins-app
+	url = https://github.com/vdespa/learn-jenkins-app
