@@ -15,7 +15,7 @@ pipeline {
             }
             steps {
                 sh '''
-                    cd jenkins/deploy
+                    cd terraform
                     tfsec
                 '''
             }
