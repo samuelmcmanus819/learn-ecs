@@ -41,8 +41,7 @@ pipeline {
                     # Deploy Jenkins App
                     cd terraform
                     terraform init
-                    terraform apply -auto-approve
-                    terraform output -json > terraform-output.json
+                    terraform apply -var-file terraform.tfvars -auto-approve
                 '''
             }
         }
