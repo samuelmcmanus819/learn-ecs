@@ -33,7 +33,15 @@ jobs:
         aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
     - name: Terraform Plan
-      run: cd terraform && terraform plan -input=false -out=tfplan && terraform show -json tfplan | jq -R 'fromjson? | select(.)' > tfplan.json
+      run: 
+      - |
+        cd terraform 
+        terraform plan -input=false -out=tfplan 
+
+    - name: Save Output to JSON
+      run: |
+        cd terraform
+        terraform show -json tfplan | jq -R 'fromjson? | select(.)' > tfplan.json
 
     - name: Upload Terraform Plan
       id: upload-artifact
@@ -44,7 +52,7 @@ jobs:
 
     - name: Terraform Apply
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      run: cd terraform && terraform apply -auto-approve -input=false
+      run: cd terraform && terraform apply -auto-approve -input=false tfplan
     
     # Comment on the PR with a link to the Terraform Plan artifact
     - name: Comment on Pull Request
@@ -85,5 +93,4 @@ jobs:
         
     - name: Terraform Destroy
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      run: |
-        cd terraform && terraform destroy -input=false -auto-approve
+      run: cd terraform && terraform destroy -input=false -auto-approve
