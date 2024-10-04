@@ -1,0 +1,1 @@
+Just a playground for me to work with ECS on Fargate and GitHub Actions
