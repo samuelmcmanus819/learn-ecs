@@ -33,8 +33,7 @@ jobs:
         aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
     - name: Terraform Plan
-      run: 
-      - |
+      run: |
         cd terraform 
         terraform plan -input=false -out=tfplan 
 
