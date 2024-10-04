@@ -90,6 +90,13 @@ jobs:
         aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         
+    - name: Empty S3 bucket
+      run: |
+        # Extract the bucket name from your Terraform state
+        BUCKET_NAME=$(terraform show -json | jq -r '.values.root_module.child_modules[0].resources[] | select(.type == "aws_s3_bucket") | .values.bucket')
+        
+        # Empty the bucket
+        aws s3 rm s3://$BUCKET_NAME --recursive
+
     - name: Terraform Destroy
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      run: cd terraform && terraform destroy -input=false -auto-approve
+      run: terraform destroy -auto-approve
