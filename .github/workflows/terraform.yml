@@ -33,18 +33,18 @@ jobs:
         aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
     - name: Terraform Plan
-      run: terraform plan -input=false -out=tfplan
+      run: cd terraform && terraform plan -input=false -out=tfplan
 
     - name: Upload Terraform Plan
       id: upload-artifact
       uses: actions/upload-artifact@v4
       with:
         name: terraform-plan
-        path: tfplan
+        path: terraform/tfplan
 
     - name: Terraform Apply
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      run: terraform apply -auto-approve -input=false
+      run: cd terraform && terraform apply -auto-approve -input=false
     
     # Comment on the PR with a link to the Terraform Plan artifact
     - name: Comment on Pull Request
@@ -86,4 +86,4 @@ jobs:
     - name: Terraform Destroy
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       run: |
-        terraform destroy -input=false -auto-approve
+        cd terraform && terraform destroy -input=false -auto-approve
