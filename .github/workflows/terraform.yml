@@ -33,7 +33,7 @@ jobs:
         aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
     - name: Terraform Plan
-      run: cd terraform && terraform plan -input=false -out=tfplan && terraform show -json tfplan | jq > tfplan.json
+      run: cd terraform && terraform plan -input=false -out=tfplan && terraform show -json tfplan | jq . > tfplan.json
 
     - name: Upload Terraform Plan
       id: upload-artifact
