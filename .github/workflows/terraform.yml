@@ -33,14 +33,14 @@ jobs:
         aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
     - name: Terraform Plan
-      run: cd terraform && terraform plan -input=false -out=tfplan
+      run: cd terraform && terraform plan -input=false -out=tfplan && terraform show -json tfplan > tfplan.json
 
     - name: Upload Terraform Plan
       id: upload-artifact
       uses: actions/upload-artifact@v4
       with:
         name: terraform-plan
-        path: terraform/tfplan
+        path: terraform/tfplan.json
 
     - name: Terraform Apply
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
