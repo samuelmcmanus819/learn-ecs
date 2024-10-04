@@ -1,3 +1,7 @@
-variable "subnet_id" {
-  type = string
+variable "web_server_subnet_ids" {
+  type = list(string)
+}
+
+variable "web_server_security_groups" {
+  type = list(string)
 }
