@@ -1,0 +1,28 @@
+name: "Terraform Setup"
+description: "Set up Terraform and AWS credentials"
+inputs:
+  aws_region:
+    description: "AWS Region"
+    required: true
+  aws_access_key_id:
+    description: "The access key id to deploy the code with"
+    required: true
+  aws_secret_access_key:
+    description: "The secret access key to deploy the code with"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v3
+      with:
+        aws-access-key-id: ${{ inputs.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ inputs.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ inputs.aws_region }}
+
+    - name: Terraform Init
+      run: cd terraform && terraform init
+      shell: bash
