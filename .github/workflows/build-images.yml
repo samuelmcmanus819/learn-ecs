@@ -12,7 +12,7 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-
+    environment: 'Terraform Environment'
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -39,8 +39,7 @@ jobs:
     - name: Push image to Amazon ECR
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        IMAGE_TAG: ${{ github.sha }}
       if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
       run: |
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$BRANCH_NAME
