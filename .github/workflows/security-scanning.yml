@@ -45,7 +45,7 @@ jobs:
             owner: context.repo.owner,
             repo: context.repo.repo,
             issue_number: context.payload.pull_request.number,
-            body: `Terraform plan uploaded: [terraform-plan](${{ steps.upload-artifact.outputs.artifact-url }})`
+            body: `Trivy IaC scan uploaded: [terraform-plan](${{ steps.upload-artifact.outputs.artifact-url }})`
           })
 
   trivy-image:
@@ -84,5 +84,5 @@ jobs:
             owner: context.repo.owner,
             repo: context.repo.repo,
             issue_number: context.payload.pull_request.number,
-            body: `Terraform plan uploaded: [terraform-plan](${{ steps.upload-artifact.outputs.artifact-url }})`
+            body: `Trivy image scan uploaded: [terraform-plan](${{ steps.upload-artifact.outputs.artifact-url }})`
           })
