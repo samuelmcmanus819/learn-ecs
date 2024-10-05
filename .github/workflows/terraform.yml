@@ -93,8 +93,8 @@ jobs:
     - name: Empty S3 Buckets
       run: |
         cd terraform
-        terraform show -json | jq
-        terraform show -json | jq -r '.values.root_module.child_modules[].resources[] | select(.type == "aws_s3_bucket" ) | .values.bucket' | while read -r BUCKET_NAME; do
+        terraform show -json > state.json 
+        jq -r '.values.root_module.child_modules[].resources[] | select(.type == "aws_s3_bucket" ) | .values.bucket' < state.json | while read -r BUCKET_NAME; do
             aws s3 rm s3://$BUCKET_NAME --recursive
         done
 
