@@ -29,20 +29,6 @@ jobs:
         ignore-unfixed: true
         severity: 'CRITICAL,HIGH'
 
-  # tfsec:
-  #   name: 'TFSec Scan'
-  #   runs-on: ubuntu-latest
-  #   # environment: 'Terraform Environment'
-  #   defaults:
-  #     run:
-  #       shell: bash
-  #   steps:
-  #   - name: Checkout
-  #     uses: actions/checkout@v4
-    
-  #   - name: tfsec action
-  #     uses: aquasecurity/tfsec-action@v1.0.3
-
   trivy-image:
     name: 'Trivy Image Scan'
     runs-on: ubuntu-latest
