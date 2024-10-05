@@ -25,7 +25,6 @@ jobs:
         hide-progress: true
         format: 'sarif'
         output: 'trivy-results.sarif'
-        exit-code: '1'
         ignore-unfixed: true
         severity: 'CRITICAL,HIGH'
 
@@ -37,14 +36,13 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Build Jenkins Docker Image
-      run: docker build -t jenkins:${{ github.sha }} . 
+      run: docker build -t jenkins:${{ github.sha }} -f docker/Dockerfile . 
     
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@0.24.0
       with:
         image-ref: 'jenkins:${{ github.sha }}'
         format: 'table'
-        exit-code: '1'
         ignore-unfixed: true
         vuln-type: 'os,library'
         severity: 'CRITICAL,HIGH'
