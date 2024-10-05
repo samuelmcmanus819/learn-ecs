@@ -92,16 +92,8 @@ jobs:
         
     - name: Empty S3 Buckets
       run: |
-        set -x
         cd terraform
-        terraform show -json > state.json 
-        cat state.json
-        jq empty state.json
-        cat state.json | jq
-        jq -r '.values.root_module.child_modules[].resources[] | select(.type == "aws_s3_bucket" ) | .values.bucket' < state.json
-        jq -r '.values.root_module.child_modules[].resources[] | select(.type == "aws_s3_bucket" ) | .values.bucket' < state.json | while read -r BUCKET_NAME; do
-            aws s3 rm s3://$BUCKET_NAME --recursive
-        done
+        aws s3 rm s3://learn-ecs-logging-bucket --recursive
 
     - name: Terraform Destroy
       run: terraform destroy -auto-approve
