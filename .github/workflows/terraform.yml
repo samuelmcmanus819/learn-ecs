@@ -3,6 +3,8 @@ name: 'Terraform'
 on:
   workflow_run:
     workflows: ['Build and Push to ECR']
+    types:
+      - completed
 
 permissions:
   contents: read
