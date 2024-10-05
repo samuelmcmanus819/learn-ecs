@@ -2,13 +2,14 @@ name: 'Terraform'
 
 on:
   workflow_run:
-    workflows: ['Build and Push to ECR']
+    workflows: ["Build and Push to ECR"]
     types:
       - completed
 
 permissions:
   contents: read
   pull-requests	: write
+  actions: write
 
 jobs:
   terraform-apply:
