@@ -24,7 +24,7 @@ jobs:
         scan-type: 'config'
         hide-progress: true
         format: 'sarif'
-        output: 'trivy-results.sarif'
+        output: 'trivy-iac-results.sarif'
         ignore-unfixed: true
         severity: 'CRITICAL,HIGH'
 
@@ -45,7 +45,7 @@ jobs:
             owner: context.repo.owner,
             repo: context.repo.repo,
             issue_number: context.payload.pull_request.number,
-            body: `Trivy IaC scan uploaded: [terraform-plan](${{ steps.upload-artifact.outputs.artifact-url }})`
+            body: `Trivy IaC scan uploaded: [IaC Scan Report](${{ steps.upload-artifact.outputs.artifact-url }})`
           })
 
   trivy-image:
@@ -64,6 +64,7 @@ jobs:
         image-ref: 'jenkins:${{ github.sha }}'
         format: 'table'
         ignore-unfixed: true
+        output: 'trivy-image-results.sarif'
         vuln-type: 'os,library'
         severity: 'CRITICAL,HIGH'
 
@@ -84,5 +85,5 @@ jobs:
             owner: context.repo.owner,
             repo: context.repo.repo,
             issue_number: context.payload.pull_request.number,
-            body: `Trivy image scan uploaded: [terraform-plan](${{ steps.upload-artifact.outputs.artifact-url }})`
+            body: `Trivy image scan uploaded: [image scan report](${{ steps.upload-artifact.outputs.artifact-url }})`
           })
