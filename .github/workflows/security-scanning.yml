@@ -27,6 +27,7 @@ jobs:
         output: 'trivy-iac-results.sarif'
         ignore-unfixed: true
         severity: 'CRITICAL,HIGH'
+        exit-code: '1'
 
     - name: Upload Trivy Results
       id: upload-trivy-iac-artifact
@@ -67,6 +68,7 @@ jobs:
         output: 'trivy-image-results.sarif'
         vuln-type: 'os,library'
         severity: 'CRITICAL,HIGH'
+        exit-code: '1'
 
     - name: Upload Trivy Results
       id: upload-trivy-image-artifact
