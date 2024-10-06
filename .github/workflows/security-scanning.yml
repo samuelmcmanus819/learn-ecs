@@ -69,7 +69,7 @@ jobs:
         output: 'trivy-image-results.sarif'
         vuln-type: 'os,library'
         exit-code: '1'
-        config-path: trivy.yaml
+        trivy-config: trivy.yaml
 
     - name: Upload Trivy Results
       id: upload-trivy-image-artifact
