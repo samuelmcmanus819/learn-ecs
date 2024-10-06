@@ -37,7 +37,7 @@ jobs:
         path: trivy-iac-results.sarif
 
     - name: Comment Trivy Results
-      if: github.event_name == 'pull_request'
+      if: always() && github.event_name == 'pull_request'
       uses: actions/github-script@v7
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -79,7 +79,7 @@ jobs:
 
     - name: Comment Trivy Results
       uses: actions/github-script@v7
-      if: github.event_name == 'pull_request'
+      if: always() && github.event_name == 'pull_request'
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
