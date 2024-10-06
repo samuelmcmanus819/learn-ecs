@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests	: write
   actions: write
 
 env:
@@ -45,7 +46,7 @@ jobs:
         BRANCH_NAME=${GITHUB_REF##*/}
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$BRANCH_NAME
-        
+
   terraform-apply:
     name: 'Terraform Apply'
     # Don't run multiple terraform jobs simultaneously
