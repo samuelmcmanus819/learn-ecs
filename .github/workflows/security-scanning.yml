@@ -80,8 +80,8 @@ jobs:
         path: trivy-image-results.sarif
 
     - name: Comment Trivy Results
-      uses: actions/github-script@v7
       if: always() && github.event_name == 'pull_request'
+      uses: actions/github-script@v7
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
@@ -89,8 +89,6 @@ jobs:
             owner: context.repo.owner,
             repo: context.repo.repo,
             issue_number: context.payload.pull_request.number,
-            body: `Trivy image scan uploaded: [image scan report](${{
-              steps.upload-trivy-image-artifact.outputs.artifact-url
-            }})`
+            body: `Trivy image scan uploaded: [image Scan Report](${{ steps.upload-trivy-image-artifact.outputs.artifact-url }})`
           })
 
