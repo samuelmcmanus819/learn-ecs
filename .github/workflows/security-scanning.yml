@@ -30,10 +30,10 @@ jobs:
 
     - name: Upload Trivy Results
       id: upload-artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: trivy-results
-        path: trivy-results.sarif
+        name: trivy-iac-results
+        path: trivy-iac-results.sarif
 
     - name: Comment Trivy Results
       if: github.event_name == 'pull_request'
@@ -69,10 +69,10 @@ jobs:
 
     - name: Upload Trivy Results
       id: upload-artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: trivy-results
-        path: trivy-results.sarif
+        name: trivy-image-results
+        path: trivy-image-results.sarif
 
     - name: Comment Trivy Results
       if: github.event_name == 'pull_request'
