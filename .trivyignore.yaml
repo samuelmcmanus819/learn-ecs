@@ -1,4 +1,4 @@
-vulnerabilities:
+misconfigurations:
   # Allow all egress for web server
   - id: AVD-AWS-0104
     paths: 
