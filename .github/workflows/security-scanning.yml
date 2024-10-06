@@ -29,7 +29,7 @@ jobs:
         severity: 'CRITICAL,HIGH'
 
     - name: Upload Trivy Results
-      id: upload-trivy-iac-artifacts
+      id: upload-trivy-iac-artifact
       uses: actions/upload-artifact@v4
       with:
         name: trivy-iac-results
@@ -45,7 +45,7 @@ jobs:
             owner: context.repo.owner,
             repo: context.repo.repo,
             issue_number: context.payload.pull_request.number,
-            body: `Trivy IaC scan uploaded: [IaC Scan Report](${{ steps.upload-artifact.outputs.artifact-url }})`
+            body: `Trivy IaC scan uploaded: [IaC Scan Report](${{ steps.upload-trivy-iac-artifact.outputs.artifact-url }})`
           })
 
   trivy-image:
@@ -86,7 +86,7 @@ jobs:
             repo: context.repo.repo,
             issue_number: context.payload.pull_request.number,
             body: `Trivy image scan uploaded: [image scan report](${{
-              steps.upload-trivy-artifact.outputs.artifact-url
+              steps.upload-trivy-image-artifact.outputs.artifact-url
             }})`
           })
 
