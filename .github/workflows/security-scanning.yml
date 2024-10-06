@@ -28,6 +28,7 @@ jobs:
         ignore-unfixed: true
         exit-code: '1'
         trivy-config: ./trivy.yaml
+        trivyignore: ./.trivyignore.yaml
 
     - name: Upload Trivy Results
       id: upload-trivy-iac-artifact

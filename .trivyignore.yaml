@@ -1,0 +1,7 @@
+vulnerabilities:
+  # Allow all egress for web server
+  - id: AVD-AWS-0104
+    path: terraform/modules/ecs-network/main.tf
+  # Allow all ingress for web server
+  - id: AVD-AWS-0107
+    path: terraform/modules/ecs-network/main.tf
