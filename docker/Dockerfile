@@ -1,4 +1,4 @@
-FROM jenkins/jenkins:2.462.2-jdk17
+FROM jenkins/jenkins:jdk17
 USER root
 RUN apt-get update && apt-get install -y lsb-release --no-install-recommends
 RUN curl -fsSLo /usr/share/keyrings/docker-archive-keyring.asc \
