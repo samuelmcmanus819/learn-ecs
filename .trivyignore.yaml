@@ -2,8 +2,8 @@ misconfigurations:
   # Allow all egress for web server
   - id: AVD-AWS-0104
     paths: 
-      - terraform/modules/ecs-network/main.tf
+      - "terraform/modules/ecs-network/main.tf"
   # Allow all ingress for web server
   - id: AVD-AWS-0107
     paths: 
-      - terraform/modules/ecs-network/main.tf
+      - "terraform/modules/ecs-network/main.tf"
