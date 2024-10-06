@@ -4,11 +4,11 @@ resource "aws_vpc" "ecs_vpc" {
 
 # Enable VPC Flow Logs for the VPC
 resource "aws_flow_log" "vpc_flow_log" {
-  vpc_id = aws_vpc.ecs_vpc.id  
+  vpc_id = aws_vpc.ecs_vpc.id
 
-  log_destination_type = "s3"  # Alternatively, you can choose 's3' for storage in S3
-  log_destination = var.log_bucket_arn
-  traffic_type = "REJECT"
+  log_destination_type = "s3" # Alternatively, you can choose 's3' for storage in S3
+  log_destination      = var.log_bucket_arn
+  traffic_type         = "REJECT"
 }
 
 # Create an IAM Role to allow VPC to write flow logs to S3
@@ -29,13 +29,13 @@ resource "aws_iam_role" "flow_logs_role" {
 
 # IAM Policy to allow writing to the S3 bucket
 resource "aws_iam_role_policy" "flow_logs_policy" {
-  name   = "flow-logs-s3-policy"
-  role   = aws_iam_role.flow_logs_role.id
+  name = "flow-logs-s3-policy"
+  role = aws_iam_role.flow_logs_role.id
   policy = jsonencode({
     "Version" : "2012-10-17",
     "Statement" : [{
-      "Effect"   : "Allow",
-      "Action"   : [
+      "Effect" : "Allow",
+      "Action" : [
         "s3:PutObject",
         "s3:GetBucketLocation",
         "s3:ListBucket"
@@ -55,8 +55,8 @@ resource "aws_subnet" "ecs_vpc_public_subnet" {
 }
 
 resource "aws_subnet" "ecs_vpc_private_subnet" {
-  vpc_id     = aws_vpc.ecs_vpc.id
-  cidr_block = "10.0.2.0/24"
+  vpc_id            = aws_vpc.ecs_vpc.id
+  cidr_block        = "10.0.2.0/24"
   availability_zone = "us-east-1a"
 }
 
@@ -101,17 +101,17 @@ resource "aws_security_group" "web_server_sg" {
 resource "aws_vpc_security_group_ingress_rule" "allow_http" {
   security_group_id = aws_security_group.web_server_sg.id
   cidr_ipv4         = "0.0.0.0/0"
-  from_port         = 80
+  from_port         = 8080
   ip_protocol       = "tcp"
-  to_port           = 80
+  to_port           = 8080
 }
 
 resource "aws_vpc_security_group_ingress_rule" "allow_http_ipv6" {
   security_group_id = aws_security_group.web_server_sg.id
   cidr_ipv6         = "::/0"
-  from_port         = 80
+  from_port         = 8080
   ip_protocol       = "tcp"
-  to_port           = 80
+  to_port           = 8080
 }
 
 resource "aws_vpc_security_group_egress_rule" "allow_all_outbound" {
