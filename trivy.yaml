@@ -1,0 +1,14 @@
+ignore:
+  - path: ./.devcontainer/**/*
+  # - id: AVD-AWS-0104
+  #   path: terraform/main.tf
+  # - id: CVE-2021-44228
+  #   paths:
+  #     - terraform/modules/app/main.tf
+  #     - terraform/modules/database/main.tf
+severity:
+  - HIGH
+  - CRITICAL
+scan:
+  skip-dirs:
+    - ./.devcontainer

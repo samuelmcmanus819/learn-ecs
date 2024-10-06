@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   trivy-iac:
-    name: "Trivy IAC Scan"
+    name: "Trivy IaC Scan"
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -26,8 +26,8 @@ jobs:
         format: 'sarif'
         output: 'trivy-iac-results.sarif'
         ignore-unfixed: true
-        severity: 'CRITICAL,HIGH'
         exit-code: '1'
+        config-path: trivy.yaml
 
     - name: Upload Trivy Results
       id: upload-trivy-iac-artifact
@@ -68,8 +68,8 @@ jobs:
         ignore-unfixed: true
         output: 'trivy-image-results.sarif'
         vuln-type: 'os,library'
-        severity: 'CRITICAL,HIGH'
         exit-code: '1'
+        config-path: trivy.yaml
 
     - name: Upload Trivy Results
       id: upload-trivy-image-artifact
@@ -91,4 +91,3 @@ jobs:
             issue_number: context.payload.pull_request.number,
             body: `Trivy image scan uploaded: [image Scan Report](${{ steps.upload-trivy-image-artifact.outputs.artifact-url }})`
           })
-
