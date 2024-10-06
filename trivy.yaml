@@ -2,15 +2,15 @@ ignore:
   - path: ./.devcontainer/**/*
   # Allow all egress for web server
   - id: AVD-AWS-0104
-    paths: 
-      - "**/ecs-network/main.tf"
+    path: terraform/modules/ecs-network/main.tf
   # Allow all ingress for web server
   - id: AVD-AWS-0107
-    paths: 
-      - "**/ecs-network/main.tf"
+    path: terraform/modules/ecs-network/main.tf
+
 severity:
   - HIGH
   - CRITICAL
+
 scan:
   skip-dirs:
     - ./.devcontainer

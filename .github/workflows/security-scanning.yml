@@ -27,7 +27,7 @@ jobs:
         output: 'trivy-iac-results.sarif'
         ignore-unfixed: true
         exit-code: '1'
-        trivy-config: trivy.yaml
+        trivy-config: ./trivy.yaml
 
     - name: Upload Trivy Results
       id: upload-trivy-iac-artifact
