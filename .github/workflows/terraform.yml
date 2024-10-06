@@ -77,11 +77,11 @@ jobs:
       cancel-in-progress: false
     runs-on: ubuntu-latest
     environment: 'Terraform Environment'
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     needs: terraform-apply
     defaults:
       run:
         shell: bash
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
     - name: Checkout
       uses: actions/checkout@v4
