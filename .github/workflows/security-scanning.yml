@@ -32,6 +32,7 @@ jobs:
     - name: Upload Trivy Results
       id: upload-trivy-iac-artifact
       uses: actions/upload-artifact@v4
+      if: always()
       with:
         name: trivy-iac-results
         path: trivy-iac-results.sarif
@@ -73,6 +74,7 @@ jobs:
     - name: Upload Trivy Results
       id: upload-trivy-image-artifact
       uses: actions/upload-artifact@v4
+      if: always()
       with:
         name: trivy-image-results
         path: trivy-image-results.sarif
