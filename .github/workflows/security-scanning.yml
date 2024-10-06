@@ -28,7 +28,7 @@ jobs:
         ignore-unfixed: true
         exit-code: '1'
         trivy-config: ./trivy.yaml
-        trivyignore: ./.trivyignore.yaml
+        trivyignores: ./.trivyignore.yaml
 
     - name: Upload Trivy Results
       id: upload-trivy-iac-artifact
@@ -71,6 +71,7 @@ jobs:
         vuln-type: 'os,library'
         exit-code: '1'
         trivy-config: trivy.yaml
+        trivyignores: ./.trivyignore.yaml
 
     - name: Upload Trivy Results
       id: upload-trivy-image-artifact
