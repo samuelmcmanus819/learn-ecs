@@ -1,5 +1,55 @@
+resource "aws_efs_file_system" "jenkins_volume" {
+  lifecycle_policy {
+    transition_to_ia = "AFTER_30_DAYS"
+  }
+}
+
+
+resource "aws_efs_mount_target" "jenkins_web_volume_mount" {
+  for_each = toset(var.jenkins_web_subnet_ids)
+  file_system_id  = aws_efs_file_system.jenkins_volume.id
+  subnet_id       = each.value
+  security_groups = [var.jenkins_efs_security_group]
+}
+
+resource "aws_efs_access_point" "jenkins_home" {
+  file_system_id = aws_efs_file_system.jenkins_volume.id
+
+  posix_user {
+    uid = 1000
+    gid = 1000
+  }
+
+  root_directory {
+    path = "/jenkins_home"
+    creation_info {
+      owner_uid   = 1000
+      owner_gid   = 1000
+      permissions = 0755
+    }
+  }
+}
+
+resource "aws_efs_access_point" "jenkins_certs" {
+  file_system_id = aws_efs_file_system.jenkins_volume.id
+
+  posix_user {
+    uid = 1000
+    gid = 1000
+  }
+
+  root_directory {
+    path = "/certs/client"
+    creation_info {
+      owner_uid   = 1000
+      owner_gid   = 1000
+      permissions = 0755
+    }
+  }
+}
+
 resource "aws_ecs_cluster" "jenkins_cluster" {
-  name = "learn-ecs-cluster"
+  name = "jenkins-cluster"
 
   # Disable container insights because it's expensive
   setting {
@@ -9,61 +59,13 @@ resource "aws_ecs_cluster" "jenkins_cluster" {
   }
 }
 
-resource "aws_iam_role" "ecs_execution_role" {
-  name = "ecs-execution-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "ecs-tasks.amazonaws.com"
-        }
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "ecs_execution_role_policy" {
-  role       = aws_iam_role.ecs_execution_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
-}
-
-
-resource "aws_ecs_task_definition" "jenkins_web_task" {
-  family                   = "learn-ecs-task-definition"
-  network_mode             = "awsvpc" # Required for Fargate
-  cpu                      = "256"    # .25 vCPU
-  memory                   = "512"    # .5 MiB
-  requires_compatibilities = ["FARGATE"]
-  execution_role_arn       = aws_iam_role.ecs_execution_role.arn
-
-  container_definitions = jsonencode([{
-    name      = "jenkins_web"
-    image     = "${var.jenkins_ecr_image}"
-    essential = true
-    portMappings = [{
-      name          = "http"
-      containerPort = 8080
-      hostPort      = 8080
-      protocol      = "tcp"
-      appProtocol   = "http"
-    }]
-  }])
-}
-
-resource "aws_ecs_service" "jenkins_web_service" {
-  name            = "jenkins_web_service"
-  cluster         = aws_ecs_cluster.jenkins_cluster.id
-  task_definition = aws_ecs_task_definition.jenkins_web_task.arn
-  desired_count   = 1
-  launch_type     = "FARGATE" # Specifies Fargate
-
-  network_configuration {
-    subnets          = var.jenkins_web_subnet_ids
-    security_groups  = var.jenkins_web_security_groups
-    assign_public_ip = true
-  }
+module "jenkins_web_server" {
+  source                       = "../jenkins-web-server"
+  jenkins_web_ecr_image        = var.jenkins_web_ecr_image
+  jenkins_web_subnet_ids       = var.jenkins_web_subnet_ids
+  jenkins_web_security_groups  = var.jenkins_web_security_groups
+  jenkins_volume_id            = aws_efs_file_system.jenkins_volume.id
+  jenkins_home_access_point_id = aws_efs_access_point.jenkins_home.id
+  jenkins_cert_access_point_id = aws_efs_access_point.jenkins_certs.id
+  jenkins_cluster_id           = aws_ecs_cluster.jenkins_cluster.id
 }

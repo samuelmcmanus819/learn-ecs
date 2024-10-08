@@ -1,5 +1,7 @@
 resource "aws_vpc" "ecs_vpc" {
   cidr_block = "10.0.0.0/16"
+  enable_dns_hostnames = true
+  enable_dns_support = true
 }
 
 # Enable VPC Flow Logs for the VPC
@@ -98,7 +100,7 @@ resource "aws_security_group" "web_server_sg" {
 }
 
 #trivy:ignore:AVD-AWS-0107
-resource "aws_vpc_security_group_ingress_rule" "allow_http" {
+resource "aws_vpc_security_group_ingress_rule" "allow_web_server_http" {
   security_group_id = aws_security_group.web_server_sg.id
   cidr_ipv4         = "0.0.0.0/0"
   from_port         = 8080
@@ -107,7 +109,7 @@ resource "aws_vpc_security_group_ingress_rule" "allow_http" {
 }
 
 #trivy:ignore:AVD-AWS-0107
-resource "aws_vpc_security_group_ingress_rule" "allow_http_ipv6" {
+resource "aws_vpc_security_group_ingress_rule" "allow_web_server_http_ipv6" {
   security_group_id = aws_security_group.web_server_sg.id
   cidr_ipv6         = "::/0"
   from_port         = 8080
@@ -116,11 +118,37 @@ resource "aws_vpc_security_group_ingress_rule" "allow_http_ipv6" {
 }
 
 #trivy:ignore:AVD-AWS-0104
-resource "aws_vpc_security_group_egress_rule" "allow_all_outbound" {
+resource "aws_vpc_security_group_egress_rule" "allow_web_server_all_outbound" {
   security_group_id = aws_security_group.web_server_sg.id
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1" # semantically equivalent to all ports
+}
 
+resource "aws_security_group" "efs_sg" {
+  name        = "efs-security-group"
+  description = "Allow NFS access to EFS"
+  vpc_id      = aws_vpc.ecs_vpc.id
+
+  tags = {
+    Name = "efs-security-group"
+  }
+}
+
+resource "aws_vpc_security_group_ingress_rule" "allow_efs_from_ecs" {
+  description                  = "Allow NFS from ECS tasks"
+  security_group_id            = aws_security_group.efs_sg.id
+  referenced_security_group_id = aws_security_group.web_server_sg.id
+  from_port                    = 2049
+  to_port                      = 2049
+  ip_protocol                  = "tcp"
+}
+
+resource "aws_vpc_security_group_egress_rule" "allow_efs_to_ecs" {
+  security_group_id            = aws_security_group.efs_sg.id
+  ip_protocol                  = "tcp"
+  referenced_security_group_id = aws_security_group.web_server_sg.id
+  from_port                    = 0
+  to_port                      = 0
 }
 
 resource "aws_route_table" "private_route_table" {
@@ -137,10 +165,48 @@ resource "aws_route_table_association" "private_route_table_assoc" {
   route_table_id = aws_route_table.private_route_table.id
 }
 
-output "web_service_subnet_ids" {
-  value = [aws_subnet.ecs_vpc_public_subnet.id]
+resource "aws_security_group" "vpc_endpoints" {
+  name        = "vpc-endpoints-sg"
+  description = "Security group for VPC endpoints"
+  vpc_id      = aws_vpc.ecs_vpc.id
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [aws_vpc.ecs_vpc.cidr_block]
+  }
 }
 
-output "web_server_security_groups" {
-  value = [aws_security_group.web_server_sg.id]
+# VPC Endpoint for SSM
+resource "aws_vpc_endpoint" "ssm" {
+  vpc_id              = aws_vpc.ecs_vpc.id
+  service_name        = "com.amazonaws.us-east-1.ssm"
+  vpc_endpoint_type   = "Interface"
+  private_dns_enabled = true
+
+  subnet_ids = [aws_subnet.ecs_vpc_private_subnet.id]
+  security_group_ids = [aws_security_group.vpc_endpoints.id]
+}
+
+# VPC Endpoint for SSM Messages
+resource "aws_vpc_endpoint" "ssmmessages" {
+  vpc_id              = aws_vpc.ecs_vpc.id
+  service_name        = "com.amazonaws.us-east-1.ssmmessages"
+  vpc_endpoint_type   = "Interface"
+  private_dns_enabled = true
+
+  subnet_ids = [aws_subnet.ecs_vpc_private_subnet.id]
+  security_group_ids = [aws_security_group.vpc_endpoints.id]
+}
+
+# VPC Endpoint for ECS
+resource "aws_vpc_endpoint" "ecs" {
+  vpc_id              = aws_vpc.ecs_vpc.id
+  service_name        = "com.amazonaws.us-east-1.ecs"
+  vpc_endpoint_type   = "Interface"
+  private_dns_enabled = true
+
+  subnet_ids = [aws_subnet.ecs_vpc_private_subnet.id]
+  security_group_ids = [aws_security_group.vpc_endpoints.id]
 }
