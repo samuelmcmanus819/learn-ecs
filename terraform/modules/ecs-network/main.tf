@@ -56,12 +56,6 @@ resource "aws_subnet" "ecs_vpc_public_subnet" {
   availability_zone = "us-east-1a"
 }
 
-resource "aws_subnet" "ecs_vpc_private_subnet" {
-  vpc_id            = aws_vpc.ecs_vpc.id
-  cidr_block        = "10.0.2.0/24"
-  availability_zone = "us-east-1a"
-}
-
 resource "aws_internet_gateway" "ecs_internet_gateway" {
   vpc_id = aws_vpc.ecs_vpc.id
 }
@@ -89,66 +83,10 @@ resource "aws_route_table_association" "public_route_table_assoc" {
   route_table_id = aws_route_table.public_route_table.id
 }
 
-resource "aws_security_group" "web_server_sg" {
-  name        = "web_server_sg"
-  description = "Rules for the web server security group"
-  vpc_id      = aws_vpc.ecs_vpc.id
-
-  tags = {
-    Name = "web_server_sg"
-  }
-}
-
-#trivy:ignore:AVD-AWS-0107
-resource "aws_vpc_security_group_ingress_rule" "allow_web_server_http" {
-  security_group_id = aws_security_group.web_server_sg.id
-  cidr_ipv4         = "0.0.0.0/0"
-  from_port         = 8080
-  ip_protocol       = "tcp"
-  to_port           = 8080
-}
-
-#trivy:ignore:AVD-AWS-0107
-resource "aws_vpc_security_group_ingress_rule" "allow_web_server_http_ipv6" {
-  security_group_id = aws_security_group.web_server_sg.id
-  cidr_ipv6         = "::/0"
-  from_port         = 8080
-  ip_protocol       = "tcp"
-  to_port           = 8080
-}
-
-#trivy:ignore:AVD-AWS-0104
-resource "aws_vpc_security_group_egress_rule" "allow_web_server_all_outbound" {
-  security_group_id = aws_security_group.web_server_sg.id
-  cidr_ipv4         = "0.0.0.0/0"
-  ip_protocol       = "-1" # semantically equivalent to all ports
-}
-
-resource "aws_security_group" "efs_sg" {
-  name        = "efs-security-group"
-  description = "Allow NFS access to EFS"
-  vpc_id      = aws_vpc.ecs_vpc.id
-
-  tags = {
-    Name = "efs-security-group"
-  }
-}
-
-resource "aws_vpc_security_group_ingress_rule" "allow_efs_from_ecs" {
-  description                  = "Allow NFS from ECS tasks"
-  security_group_id            = aws_security_group.efs_sg.id
-  referenced_security_group_id = aws_security_group.web_server_sg.id
-  from_port                    = 2049
-  to_port                      = 2049
-  ip_protocol                  = "tcp"
-}
-
-resource "aws_vpc_security_group_egress_rule" "allow_efs_to_ecs" {
-  security_group_id            = aws_security_group.efs_sg.id
-  ip_protocol                  = "tcp"
-  referenced_security_group_id = aws_security_group.web_server_sg.id
-  from_port                    = 0
-  to_port                      = 0
+resource "aws_subnet" "ecs_vpc_private_subnet" {
+  vpc_id            = aws_vpc.ecs_vpc.id
+  cidr_block        = "10.0.2.0/24"
+  availability_zone = "us-east-1a"
 }
 
 resource "aws_route_table" "private_route_table" {
@@ -165,7 +103,19 @@ resource "aws_route_table_association" "private_route_table_assoc" {
   route_table_id = aws_route_table.private_route_table.id
 }
 
-resource "aws_security_group" "vpc_endpoints" {
+module "jenkins_web_server_network" {
+  source = "./jenkins-web-server"
+  vpc_id = aws_vpc.ecs_vpc.id
+}
+
+module "efs_network" {
+  source = "./efs"
+  vpc_id = aws_vpc.ecs_vpc.id
+  web_server_security_group_id = module.jenkins_web_server_network.security_group_id
+}
+
+
+resource "aws_security_group" "vpc_endpoints_sg" {
   name        = "vpc-endpoints-sg"
   description = "Security group for VPC endpoints"
   vpc_id      = aws_vpc.ecs_vpc.id
@@ -185,8 +135,8 @@ resource "aws_vpc_endpoint" "ssm" {
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
 
-  subnet_ids = [aws_subnet.ecs_vpc_private_subnet.id]
-  security_group_ids = [aws_security_group.vpc_endpoints.id]
+  subnet_ids = [aws_subnet.ecs_vpc_public_subnet.id] # only include one per AZ
+  security_group_ids = [aws_security_group.vpc_endpoints_sg.id]
 }
 
 # VPC Endpoint for SSM Messages
@@ -196,8 +146,8 @@ resource "aws_vpc_endpoint" "ssmmessages" {
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
 
-  subnet_ids = [aws_subnet.ecs_vpc_private_subnet.id]
-  security_group_ids = [aws_security_group.vpc_endpoints.id]
+  subnet_ids = [aws_subnet.ecs_vpc_public_subnet.id] # only include one per AZ
+  security_group_ids = [aws_security_group.vpc_endpoints_sg.id]
 }
 
 # VPC Endpoint for ECS
@@ -207,6 +157,6 @@ resource "aws_vpc_endpoint" "ecs" {
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
 
-  subnet_ids = [aws_subnet.ecs_vpc_private_subnet.id]
-  security_group_ids = [aws_security_group.vpc_endpoints.id]
+  subnet_ids = [aws_subnet.ecs_vpc_public_subnet.id] # only include one per AZ
+  security_group_ids = [aws_security_group.vpc_endpoints_sg.id]
 }
