@@ -35,7 +35,11 @@ jobs:
 
     - name: Build Jenkins to Amazon ECR
       run: |
-        BRANCH_NAME=${GITHUB_REF##*/}
+        if [ ${{ github.event_name }} == 'pull_request' ]; then
+          BRANCH_NAME=${{ github.head_ref }}
+        else
+          BRANCH_NAME=${GITHUB_REF##*/}
+        fi
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$BRANCH_NAME -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -f docker/Dockerfile .
 
     - name: Push image to Amazon ECR
@@ -43,7 +47,11 @@ jobs:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
       if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
       run: |
-        BRANCH_NAME=${GITHUB_REF##*/}
+        if [ ${{ github.event_name }} == 'pull_request' ]; then
+          BRANCH_NAME=${{ github.head_ref }}
+        else
+          BRANCH_NAME=${GITHUB_REF##*/}
+        fi
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$BRANCH_NAME
 
