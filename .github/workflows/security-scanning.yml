@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   trivy-iac:
-    name: "Trivy IAC Scan"
+    name: "Trivy IaC Scan"
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -24,19 +24,21 @@ jobs:
         scan-type: 'config'
         hide-progress: true
         format: 'sarif'
-        output: 'trivy-results.sarif'
+        output: 'trivy-iac-results.sarif'
         ignore-unfixed: true
-        severity: 'CRITICAL,HIGH'
+        exit-code: '1'
+        trivy-config: trivy.yaml
 
     - name: Upload Trivy Results
-      id: upload-artifacts
-      uses: actions/upload-artifact@v3
+      id: upload-trivy-iac-artifact
+      uses: actions/upload-artifact@v4
+      if: always()
       with:
-        name: trivy-results
-        path: trivy-results.sarif
+        name: trivy-iac-results
+        path: trivy-iac-results.sarif
 
     - name: Comment Trivy Results
-      if: github.event_name == 'pull_request'
+      if: always() && github.event_name == 'pull_request'
       uses: actions/github-script@v7
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -45,7 +47,7 @@ jobs:
             owner: context.repo.owner,
             repo: context.repo.repo,
             issue_number: context.payload.pull_request.number,
-            body: `Trivy IaC scan uploaded: [terraform-plan](${{ steps.upload-artifact.outputs.artifact-url }})`
+            body: `Trivy IaC scan uploaded: [IaC Scan Report](${{ steps.upload-trivy-iac-artifact.outputs.artifact-url }})`
           })
 
   trivy-image:
@@ -64,18 +66,21 @@ jobs:
         image-ref: 'jenkins:${{ github.sha }}'
         format: 'table'
         ignore-unfixed: true
+        output: 'trivy-image-results.sarif'
         vuln-type: 'os,library'
-        severity: 'CRITICAL,HIGH'
+        exit-code: '1'
+        trivy-config: trivy.yaml
 
     - name: Upload Trivy Results
-      id: upload-artifacts
-      uses: actions/upload-artifact@v3
+      id: upload-trivy-image-artifact
+      uses: actions/upload-artifact@v4
+      if: always()
       with:
-        name: trivy-results
-        path: trivy-results.sarif
+        name: trivy-image-results
+        path: trivy-image-results.sarif
 
     - name: Comment Trivy Results
-      if: github.event_name == 'pull_request'
+      if: always() && github.event_name == 'pull_request'
       uses: actions/github-script@v7
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -84,5 +89,5 @@ jobs:
             owner: context.repo.owner,
             repo: context.repo.repo,
             issue_number: context.payload.pull_request.number,
-            body: `Trivy image scan uploaded: [terraform-plan](${{ steps.upload-artifact.outputs.artifact-url }})`
+            body: `Trivy image scan uploaded: [image Scan Report](${{ steps.upload-trivy-image-artifact.outputs.artifact-url }})`
           })

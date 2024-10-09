@@ -1,0 +1,7 @@
+severity:
+  - HIGH
+  - CRITICAL
+
+scan:
+  skip-dirs:
+    - ./.devcontainer
