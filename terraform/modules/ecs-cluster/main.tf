@@ -28,7 +28,7 @@ resource "aws_ecs_task_definition" "my_task" {
       appProtocol   = "http"
     }]
   }])
-}
+} 
 
 resource "aws_ecs_service" "my_service" {
   name            = "my-service"
