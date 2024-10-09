@@ -6,7 +6,6 @@ This project sets up a Jenkins web server running on Amazon ECS (Elastic Contain
 - [Features](#features)
 - [Prerequisites](#prerequisites)
 - [Usage](#usage)
-- [Configuration](#configuration)
 - [Resources Created](#resources-created)
 
 
@@ -51,3 +50,10 @@ module "jenkins_web_server" {
   jenkins_web_ecr_image        = "<your-ecr-image>"
 }
 ```
+
+## Resources Created
+- Logging Bucket
+- ECS Cluster
+- ECS Service/Task for Jenkins web server
+- TBD: ECS Service/Task for Jenkins runner
+- EFS Volume for ECS tasks

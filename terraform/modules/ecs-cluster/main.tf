@@ -2,6 +2,7 @@ resource "aws_efs_file_system" "jenkins_volume" {
   lifecycle_policy {
     transition_to_ia = "AFTER_30_DAYS"
   }
+  encrypted = true
 }
 
 
