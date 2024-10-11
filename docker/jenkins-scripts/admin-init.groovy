@@ -1,21 +1,36 @@
 import jenkins.model.*
 import hudson.security.*
+import com.michelin.cio.hudson.plugins.rolestrategy.*
 
+// Get Jenkins instance
 def instance = Jenkins.getInstance()
 
+// Get the admin user from environment variables
 def adminUsername = System.getenv("JENKINS_ADMIN_ID")
 def adminPassword = System.getenv("JENKINS_ADMIN_PASSWORD")
 
-if (adminUsername && adminPassword) {
-    def hudsonRealm = new HudsonPrivateSecurityRealm(false)
-    hudsonRealm.createAccount(adminUsername, adminPassword)
-    instance.setSecurityRealm(hudsonRealm)
+println "--> Setting up Role-Based Authorization Strategy"
 
-    def strategy = new FullControlOnceLoggedInAuthorizationStrategy()
-    instance.setAuthorizationStrategy(strategy)
-    instance.save()
+// Create the admin user if not exists
+def hudsonRealm = new HudsonPrivateSecurityRealm(false)
+hudsonRealm.createAccount(adminUsername, adminPassword)
+instance.setSecurityRealm(hudsonRealm)
 
-    println "--> Admin user ${adminUsername} created."
-} else {
-    println "--> Admin credentials not provided, skipping user creation."
-}
+// Set up Role-Based Authorization Strategy
+def rbas = new RoleBasedAuthorizationStrategy()
+
+// Define the Admin role with all permissions
+def adminPermissions = Permission.getAll() // Grants all permissions
+def adminRole = new Role("admin", adminPermissions)
+
+// Add Admin role to global roles
+rbas.addRole(RoleBasedAuthorizationStrategy.GLOBAL, adminRole)
+
+// Assign the Admin user to the Admin role
+rbas.assignRole(RoleBasedAuthorizationStrategy.GLOBAL, adminRole, adminUsername)
+
+// Apply the RBAC strategy to Jenkins
+instance.setAuthorizationStrategy(rbas)
+instance.save()
+
+println "--> Admin user ${adminUsername} assigned to the Admin role."

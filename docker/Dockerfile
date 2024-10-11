@@ -11,7 +11,7 @@ RUN echo "deb [arch=$(dpkg --print-architecture) \
 RUN apt-get update && apt-get install -y docker-ce-cli --no-install-recommends
 USER jenkins
 # Download the blue ocean and docker-workflow plugins
-RUN jenkins-plugin-cli --plugins "blueocean docker-workflow"
+RUN jenkins-plugin-cli --plugins "blueocean docker-workflow role-strategy"
 # Copy the admin user startup script
 COPY docker/jenkins-scripts/admin-init.groovy /usr/share/jenkins/ref/init.groovy.d/admin-user.groovy
 # Don't run the setup wizard

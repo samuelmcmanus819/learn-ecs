@@ -55,11 +55,7 @@ resource "aws_ecs_task_definition" "jenkins_web_task" {
       }, {
       sourceVolume  = "jenkins_certs"
       containerPath = "/certs/client"
-      }, {
-      sourceVolume  = "jenkins-admin-init"
-      containerPath = "/var/jenkins_home/init.groovy.d"
-      readOnly      = false
-    }],
+      }],
     # logConfiguration = {
     #     logDriver = "awslogs"
     #     options = {
@@ -90,10 +86,6 @@ resource "aws_ecs_task_definition" "jenkins_web_task" {
         iam             = "ENABLED"
       }
     }
-  }
-  volume {
-    name = "jenkins-admin-init"
-    host_path = "${path.module}/../../../../jenkins-scripts/admin-init.groovy"
   }
 }
 
