@@ -1,33 +1,33 @@
 import jenkins.model.*
 import hudson.security.*
-import com.michelin.cio.hudson.plugins.rolestrategy.*
 
-// Get Jenkins instance
 def instance = Jenkins.getInstance()
 
-// Get the admin user from environment variables
+// Get the admin user credentials from environment variables
 def adminUsername = System.getenv("JENKINS_ADMIN_ID")
 def adminPassword = System.getenv("JENKINS_ADMIN_PASSWORD")
 
-println "--> Setting up Role-Based Authorization Strategy"
+println "--> Setting up Security Realm and Authorization Strategy"
 
-// Create the admin user if not exists
+// Create admin user if it doesn't exist
 def hudsonRealm = new HudsonPrivateSecurityRealm(false)
 hudsonRealm.createAccount(adminUsername, adminPassword)
 instance.setSecurityRealm(hudsonRealm)
 
-// Set up Global Matrix Authorization Strategy (RBAC)
+// Set up Global Matrix Authorization Strategy
 def strategy = new GlobalMatrixAuthorizationStrategy()
 
-// Grant full control to the admin user
+// Grant full admin privileges to the admin user
 strategy.add(Jenkins.ADMINISTER, adminUsername)
 
-// Restrict anonymous access (unauthenticated users)
-strategy.add(Jenkins.READ, "anonymous")
+// Remove ALL permissions for anonymous users to force login
+// This removes any default permissions like Jenkins.READ
+println "--> Revoking all permissions for anonymous users"
+strategy.add(Jenkins.READ, "authenticated") // Only authenticated users can read
 
-// Apply the authorization strategy
+// Apply the new strategy to Jenkins
 instance.setAuthorizationStrategy(strategy)
 instance.save()
 
 println "--> Admin user ${adminUsername} has been granted full access."
-println "--> Anonymous users will be forced to log in."
+println "--> Anonymous users will
