@@ -16,21 +16,18 @@ def hudsonRealm = new HudsonPrivateSecurityRealm(false)
 hudsonRealm.createAccount(adminUsername, adminPassword)
 instance.setSecurityRealm(hudsonRealm)
 
-// Set up Role-Based Authorization Strategy
-def rbas = new RoleBasedAuthorizationStrategy()
+// Set up Global Matrix Authorization Strategy (RBAC)
+def strategy = new GlobalMatrixAuthorizationStrategy()
 
-// Define the Admin role with all permissions
-def adminPermissions = Permission.getAll() // Grants all permissions
-def adminRole = new Role("admin", adminPermissions)
+// Grant full control to the admin user
+strategy.add(Jenkins.ADMINISTER, adminUsername)
 
-// Add Admin role to global roles
-rbas.addRole(RoleBasedAuthorizationStrategy.GLOBAL, adminRole)
+// Restrict anonymous access (unauthenticated users)
+strategy.add(Jenkins.READ, "anonymous")
 
-// Assign the Admin user to the Admin role
-rbas.assignRole(RoleBasedAuthorizationStrategy.GLOBAL, adminRole, adminUsername)
-
-// Apply the RBAC strategy to Jenkins
-instance.setAuthorizationStrategy(rbas)
+// Apply the authorization strategy
+instance.setAuthorizationStrategy(strategy)
 instance.save()
 
-println "--> Admin user ${adminUsername} assigned to the Admin role."
+println "--> Admin user ${adminUsername} has been granted full access."
+println "--> Anonymous users will be forced to log in."
