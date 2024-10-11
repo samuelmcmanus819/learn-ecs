@@ -28,6 +28,15 @@ resource "aws_vpc_security_group_ingress_rule" "allow_web_server_http_ipv6" {
   to_port           = 8080
 }
 
+resource "aws_vpc_security_group_ingress_rule" "allow_efs_from_ecs" {
+  description                  = "Allow JNLP from Runner"
+  security_group_id            = aws_security_group.web_server_sg.id
+  referenced_security_group_id = var.runner_sg
+  from_port                    = 50000
+  to_port                      = 50000
+  ip_protocol                  = "tcp"
+}
+
 # Web server is intended to be used universally
 #trivy:ignore:AVD-AWS-0104
 resource "aws_vpc_security_group_egress_rule" "allow_web_server_all_outbound" {

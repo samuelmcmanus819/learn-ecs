@@ -1,51 +1,11 @@
-resource "aws_efs_file_system" "jenkins_volume" {
-  lifecycle_policy {
-    transition_to_ia = "AFTER_30_DAYS"
-  }
-  encrypted = true
+resource "aws_secretsmanager_secret_version" "jenkins_agent_secret_value" {
+  secret_id     = var.jenkins_agent_secret_id
+  secret_string = var.jenkins_agent_secret
 }
 
-
-resource "aws_efs_mount_target" "jenkins_web_volume_mount" {
-  file_system_id  = aws_efs_file_system.jenkins_volume.id
-  subnet_id       = var.jenkins_web_subnet_id
-  security_groups = [var.jenkins_efs_security_group]
-}
-
-resource "aws_efs_access_point" "jenkins_home" {
-  file_system_id = aws_efs_file_system.jenkins_volume.id
-
-  posix_user {
-    uid = 1000
-    gid = 1000
-  }
-
-  root_directory {
-    path = "/jenkins_home"
-    creation_info {
-      owner_uid   = 1000
-      owner_gid   = 1000
-      permissions = 0755
-    }
-  }
-}
-
-resource "aws_efs_access_point" "jenkins_certs" {
-  file_system_id = aws_efs_file_system.jenkins_volume.id
-
-  posix_user {
-    uid = 1000
-    gid = 1000
-  }
-
-  root_directory {
-    path = "/certs/client"
-    creation_info {
-      owner_uid   = 1000
-      owner_gid   = 1000
-      permissions = 0755
-    }
-  }
+resource "aws_secretsmanager_secret_version" "jenkins_admin_password_secret_value" {
+  secret_id     = var.jenkins_admin_password_secret_id
+  secret_string = var.jenkins_admin_password
 }
 
 resource "aws_ecs_cluster" "jenkins_cluster" {
@@ -61,11 +21,33 @@ resource "aws_ecs_cluster" "jenkins_cluster" {
 
 module "jenkins_web_server" {
   source                       = "./jenkins-web-server"
+  region                       = var.region
   jenkins_web_ecr_image        = var.jenkins_web_ecr_image
-  jenkins_web_subnet_id       = var.jenkins_web_subnet_id
-  jenkins_web_security_group  = var.jenkins_web_security_group
+  jenkins_web_subnet_id        = var.jenkins_web_subnet_id
+  jenkins_web_security_group   = var.jenkins_web_security_group
   jenkins_volume_id            = aws_efs_file_system.jenkins_volume.id
   jenkins_home_access_point_id = aws_efs_access_point.jenkins_home.id
   jenkins_cert_access_point_id = aws_efs_access_point.jenkins_certs.id
   jenkins_cluster_id           = aws_ecs_cluster.jenkins_cluster.id
+  jenkins_agent_secret_arn     = var.jenkins_agent_secret_arn
+  jenkins_admin_username       = var.jenkins_admin_username
+  jenkins_admin_password_arn   = var.jenkins_admin_password_secret_arn
+  execution_role_arn           = aws_iam_role.ecs_task_role["web"].arn
+  task_role_arn                = aws_iam_role.ecs_task_role["web"].arn
 }
+
+module "jenkins_runner" {
+  source                        = "./jenkins-runner"
+  jenkins_runner_subnet_id      = var.jenkins_runner_subnet_id
+  jenkins_runner_security_group = var.jenkins_runner_security_group
+  jenkins_volume_id             = aws_efs_file_system.jenkins_volume.id
+  jenkins_home_access_point_id  = aws_efs_access_point.jenkins_home.id
+  jenkins_cert_access_point_id  = aws_efs_access_point.jenkins_certs.id
+  jenkins_cluster_id            = aws_ecs_cluster.jenkins_cluster.id
+  jenkins_agent_secret          = var.jenkins_agent_secret_arn
+  jenkins_master_ip             = module.jenkins_web_server.jenkins_web_public_ip
+  execution_role_arn            = aws_iam_role.ecs_execution_role["runner"].arn
+  task_role_arn                 = aws_iam_role.ecs_execution_role["runner"].arn
+  deploy_count                  = var.jenkins_runner_deploy_count
+}
+

@@ -1,7 +1,7 @@
 resource "aws_vpc" "ecs_vpc" {
-  cidr_block = "10.0.0.0/16"
+  cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true
-  enable_dns_support = true
+  enable_dns_support   = true
 }
 
 # Enable VPC Flow Logs for the VPC
@@ -53,7 +53,7 @@ resource "aws_iam_role_policy" "flow_logs_policy" {
 resource "aws_subnet" "ecs_vpc_public_subnet" {
   vpc_id            = aws_vpc.ecs_vpc.id
   cidr_block        = "10.0.1.0/24"
-  availability_zone = "us-east-1a"
+  availability_zone = var.availability_zone
 }
 
 resource "aws_internet_gateway" "ecs_internet_gateway" {
@@ -86,7 +86,7 @@ resource "aws_route_table_association" "public_route_table_assoc" {
 resource "aws_subnet" "ecs_vpc_private_subnet" {
   vpc_id            = aws_vpc.ecs_vpc.id
   cidr_block        = "10.0.2.0/24"
-  availability_zone = "us-east-1a"
+  availability_zone = var.availability_zone
 }
 
 resource "aws_route_table" "private_route_table" {
@@ -103,15 +103,22 @@ resource "aws_route_table_association" "private_route_table_assoc" {
   route_table_id = aws_route_table.private_route_table.id
 }
 
-module "jenkins_web_server_network" {
-  source = "./jenkins-web-server"
+module "jenkins_runner_network" {
+  source = "./jenkins-runner"
   vpc_id = aws_vpc.ecs_vpc.id
 }
 
+module "jenkins_web_server_network" {
+  source    = "./jenkins-web-server"
+  vpc_id    = aws_vpc.ecs_vpc.id
+  runner_sg = module.jenkins_runner_network.security_group_id
+}
+
 module "efs_network" {
-  source = "./efs"
-  vpc_id = aws_vpc.ecs_vpc.id
+  source                       = "./efs"
+  vpc_id                       = aws_vpc.ecs_vpc.id
   web_server_security_group_id = module.jenkins_web_server_network.security_group_id
+  runner_security_group_id     = module.jenkins_runner_network.security_group_id
 }
 
 
@@ -131,32 +138,32 @@ resource "aws_security_group" "vpc_endpoints_sg" {
 # VPC Endpoint for SSM
 resource "aws_vpc_endpoint" "ssm" {
   vpc_id              = aws_vpc.ecs_vpc.id
-  service_name        = "com.amazonaws.us-east-1.ssm"
+  service_name        = "com.amazonaws.${var.region}.ssm"
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
 
-  subnet_ids = [aws_subnet.ecs_vpc_public_subnet.id] # only include one per AZ
+  subnet_ids         = [aws_subnet.ecs_vpc_public_subnet.id] # only include one per AZ
   security_group_ids = [aws_security_group.vpc_endpoints_sg.id]
 }
 
 # VPC Endpoint for SSM Messages
 resource "aws_vpc_endpoint" "ssmmessages" {
   vpc_id              = aws_vpc.ecs_vpc.id
-  service_name        = "com.amazonaws.us-east-1.ssmmessages"
+  service_name        = "com.amazonaws.${var.region}.ssmmessages"
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
 
-  subnet_ids = [aws_subnet.ecs_vpc_public_subnet.id] # only include one per AZ
+  subnet_ids         = [aws_subnet.ecs_vpc_public_subnet.id] # only include one per AZ
   security_group_ids = [aws_security_group.vpc_endpoints_sg.id]
 }
 
 # VPC Endpoint for ECS
 resource "aws_vpc_endpoint" "ecs" {
   vpc_id              = aws_vpc.ecs_vpc.id
-  service_name        = "com.amazonaws.us-east-1.ecs"
+  service_name        = "com.amazonaws.${var.region}.ecs"
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
 
-  subnet_ids = [aws_subnet.ecs_vpc_public_subnet.id] # only include one per AZ
+  subnet_ids         = [aws_subnet.ecs_vpc_public_subnet.id] # only include one per AZ
   security_group_ids = [aws_security_group.vpc_endpoints_sg.id]
 }
