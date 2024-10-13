@@ -23,6 +23,10 @@ runs:
         aws-secret-access-key: ${{ inputs.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ inputs.aws_region }}
 
+    - name: Install Dependencies
+      run: sudo apt update && sudo apt install -y ansible-core libxml2-utils && sudo apt clean
+      shell: bash
+
     - name: Terraform Init
       run: cd terraform && terraform init
       shell: bash

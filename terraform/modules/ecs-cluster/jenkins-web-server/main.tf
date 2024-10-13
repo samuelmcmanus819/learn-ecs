@@ -1,16 +1,17 @@
-# resource "aws_cloudwatch_log_group" "jenkins_web_logs" {
-#   name              = "/ecs/jenkins-web-server"
-#   retention_in_days = 30
-# }
+data "aws_region" "current" { }
+resource "aws_cloudwatch_log_group" "jenkins_web_logs" {
+  name              = "/ecs/jenkins-web-server"
+  retention_in_days = 30
+}
 
 resource "aws_ecs_task_definition" "jenkins_web_task" {
-  family                   = "learn-ecs-task-definition"
+  family                   = "jenkins-web-task"
   network_mode             = "awsvpc" # Required for Fargate
   cpu                      = "1024"    # 1 vCPU
   memory                   = "2048"    # 2 MiB
   requires_compatibilities = ["FARGATE"]
-  execution_role_arn       = aws_iam_role.ecs_execution_role.arn
-  task_role_arn            = aws_iam_role.ecs_task_role.arn
+  execution_role_arn       = var.execution_role_arn
+  task_role_arn            = var.task_role_arn
 
   container_definitions = jsonencode([{
     name      = "jenkins_web"
@@ -22,7 +23,26 @@ resource "aws_ecs_task_definition" "jenkins_web_task" {
       hostPort      = 8080
       protocol      = "tcp"
       appProtocol   = "http"
+    }, {
+      name          = "jnlp"
+      containerPort = 50000
+      hostPort      = 50000
+      protocol      = "tcp"
+    }],
+    environment = [{
+      name  = "JENKINS_ADMIN_ID"
+      value = var.jenkins_admin_username
+    },
+    {
+      name  = "JAVA_OPTS"
+      value = "-Djenkins.install.runSetupWizard=false"
     }]
+    secrets = [
+      {
+        name      = "JENKINS_ADMIN_PASSWORD"
+        valueFrom = var.jenkins_admin_password_arn
+      }
+    ],
     linuxParameters = {
       initProcessEnabled = true
     }
@@ -32,15 +52,15 @@ resource "aws_ecs_task_definition" "jenkins_web_task" {
       }, {
       sourceVolume  = "jenkins_certs"
       containerPath = "/certs/client"
-    }],
-    # logConfiguration = {
-    #     logDriver = "awslogs"
-    #     options = {
-    #       "awslogs-group"         = "/ecs/jenkins-web-server"
-    #       "awslogs-region"        = "us-east-1" 
-    #       "awslogs-stream-prefix" = "ecs"
-    #     }
-    #   }
+      }],
+    logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = "/ecs/jenkins-web-server"
+          "awslogs-region"        = var.region 
+          "awslogs-stream-prefix" = "ecs"
+        }
+      }
   }])
   volume {
     name = "jenkins_home"
@@ -75,6 +95,7 @@ resource "aws_ecs_service" "jenkins_web_service" {
   deployment_minimum_healthy_percent = 0
   launch_type     = "FARGATE" # Specifies Fargate
   enable_execute_command = true
+  enable_ecs_managed_tags = true
 
   network_configuration {
     subnets          = [var.jenkins_web_subnet_id]
@@ -82,3 +103,4 @@ resource "aws_ecs_service" "jenkins_web_service" {
     assign_public_ip = true
   }
 }
+

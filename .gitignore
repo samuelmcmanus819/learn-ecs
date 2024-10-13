@@ -2,3 +2,5 @@ awscliv2.zip
 /aws/
 /terraform/.terraform/
 /terraform/.terraform.lock.hcl
+/terraform/test.tfvars
+cookies.txt
