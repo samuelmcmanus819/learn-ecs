@@ -12,6 +12,9 @@ inputs:
     required: true
 runs:
   using: "composite"
+  defaults:
+      run:
+        shell: bash
   steps:
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
