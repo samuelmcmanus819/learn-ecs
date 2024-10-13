@@ -1,8 +1,8 @@
-data "aws_region" "current" { }
-resource "aws_cloudwatch_log_group" "jenkins_web_logs" {
-  name              = "/ecs/jenkins-web-server"
-  retention_in_days = 30
-}
+# data "aws_region" "current" { }
+# resource "aws_cloudwatch_log_group" "jenkins_web_logs" {
+#   name              = "/ecs/jenkins-web-server"
+#   retention_in_days = 30
+# }
 
 resource "aws_ecs_task_definition" "jenkins_web_task" {
   family                   = "jenkins-web-task"
@@ -53,14 +53,14 @@ resource "aws_ecs_task_definition" "jenkins_web_task" {
       sourceVolume  = "jenkins_certs"
       containerPath = "/certs/client"
       }],
-    logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          "awslogs-group"         = "/ecs/jenkins-web-server"
-          "awslogs-region"        = var.region 
-          "awslogs-stream-prefix" = "ecs"
-        }
-      }
+    # logConfiguration = {
+    #     logDriver = "awslogs"
+    #     options = {
+    #       "awslogs-group"         = "/ecs/jenkins-web-server"
+    #       "awslogs-region"        = var.region 
+    #       "awslogs-stream-prefix" = "ecs"
+    #     }
+    #   }
   }])
   volume {
     name = "jenkins_home"
