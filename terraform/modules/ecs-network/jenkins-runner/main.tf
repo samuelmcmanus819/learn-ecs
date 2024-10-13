@@ -8,8 +8,10 @@ resource "aws_security_group" "runner_sg" {
   }
 }
 
+# Allow runner to access outbound for downloads
+#trivy:ignore:AVD-AWS-0104
 resource "aws_vpc_security_group_egress_rule" "allow_runner_all_outbound" {
   security_group_id = aws_security_group.runner_sg.id
-  referenced_security_group_id = var.web_security_group
-  ip_protocol       = "-1" # semantically equivalent to all ports
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol = "-1" # semantically equivalent to all ports
 }

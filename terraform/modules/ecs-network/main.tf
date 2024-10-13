@@ -106,7 +106,6 @@ resource "aws_route_table_association" "private_route_table_assoc" {
 module "jenkins_runner_network" {
   source = "./jenkins-runner"
   vpc_id = aws_vpc.ecs_vpc.id
-  web_security_group = module.jenkins_web_server_network.security_group_id
 }
 
 module "jenkins_web_server_network" {
@@ -114,7 +113,7 @@ module "jenkins_web_server_network" {
   vpc_id    = aws_vpc.ecs_vpc.id
   runner_sg = module.jenkins_runner_network.security_group_id
 }
- 
+
 module "efs_network" {
   source                       = "./efs"
   vpc_id                       = aws_vpc.ecs_vpc.id
