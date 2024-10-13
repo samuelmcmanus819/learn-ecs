@@ -1,0 +1,60 @@
+---
+- name: Jenkins agent node setup
+  gather_facts: no
+  tasks:
+    - name: Wait for Jenkins to be up
+      shell: |
+        until curl -s -o /dev/null -w "%{http_code}" {{ jenkins_url }} | grep -q "403\|200"; do
+          echo "Waiting for Jenkins to be up..."
+          sleep 10
+        done
+
+    - name: Get CSRF token and save cookies
+      shell: |
+        curl -s -u {{ jenkins_admin_username }}:{{ jenkins_admin_password }} "{{ jenkins_url }}/crumbIssuer/api/json" -c cookies.txt
+      register: csrf_output
+
+    - name: Extract CSRF token from response
+      set_fact:
+        crumb: "{{ csrf_output.stdout | awk -F ':' '{print $3}' | awk -F ',' '{print $1}' | sed 's/^.\(.*\).$/\1/' | tr -d '[:space:] }}"
+
+    - name: Create the Jenkins agent node
+      uri:
+        url: "{{ jenkins_url }}/computer/doCreateItem"
+        method: POST
+        user: "{{ jenkins_admin_username }}"
+        password: "{{ jenkins_admin_password }}"
+        headers:
+          Jenkins-Crumb: "{{ crumb }}"
+        body: |
+          {
+            "name": "agent1",
+            "nodeDescription": "Jenkins agent node",
+            "numExecutors": "{{ jenkins_runner_count }}",
+            "remoteFS": "/home/jenkins",
+            "labelString": "agent",
+            "mode": "NORMAL",
+            "retentionStrategy": {"stapler-class": "hudson.slaves.RetentionStrategy$Always"},
+            "nodeProperties": {"stapler-class-bag": "true"},
+            "launcher": {
+              "stapler-class": "hudson.slaves.JNLPLauncher",
+              "tunnel": "",
+              "vmargs": ""
+            },
+            "jnlpLauncher": {
+              "workDirSettings": {
+                "disabled": false,
+                "failIfWorkDirIsMissing": false,
+                "internalDir": "remoting",
+                "stapler-class": "jenkins.slaves.WorkDirSettings"
+              }
+            }
+          }
+        force_basic_auth: yes
+        status_code: 200
+
+    - name: Fetch agent JNLP and extract agent secret
+      shell: |
+        curl -s -u {{ jenkins_admin_username }}:{{ jenkins_admin_password }} "{{ jenkins_url }}/computer/agent1/slave-agent.jnlp" \
+        -H "Jenkins-Crumb: {{ crumb }}" \
+        -b cookies.txt | xmllint --xpath '/jnlp/application-desc/argument[1]/text()' - | sed -e 's/<<EOT//' -e 's/EOT//' | tr -d '[:space:]' | tee /tmp/jenkins_output.txt

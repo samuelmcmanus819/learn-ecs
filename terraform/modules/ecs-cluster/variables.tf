@@ -33,9 +33,6 @@ variable "jenkins_runner_deploy_count" {
   type = number
 }
 
-variable "jenkins_agent_secret" {
-  type = string
-}
 
 variable "jenkins_admin_username" {
   type = string
@@ -49,14 +46,7 @@ variable "jenkins_admin_password_secret_id" {
   type = string
 }
 
-variable "jenkins_agent_secret_id" {
-  type = string
-}
-
 variable "jenkins_admin_password_secret_arn" {
   type = string
 }
 
-variable "jenkins_agent_secret_arn" {
-  type = string
-}

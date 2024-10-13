@@ -33,11 +33,17 @@ variable "jenkins_cluster_id" {
 variable "jenkins_admin_username" {
   type = string
 }
-variable "jenkins_admin_password_arn" {
+
+
+variable "jenkins_runner_count" {
+  type = number
+}
+
+variable "jenkins_admin_password" {
   type = string
 }
 
-variable "jenkins_agent_secret_arn" {
+variable "jenkins_admin_password_arn" {
   type = string
 }
 

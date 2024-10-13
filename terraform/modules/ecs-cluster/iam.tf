@@ -73,7 +73,7 @@ resource "aws_iam_policy" "ecs_task_exec_policy" {
   })
 }
 
-resource "aws_iam_policy" "ecs_web_task_secrets_policy" {
+resource "aws_iam_policy" "ecs_web_execution_secrets_policy" {
   name        = "ecs-web-task-secrets-policy"
   path        = "/"
   description = "Policy for ECS Task to read Jenkins secrets"
@@ -88,46 +88,16 @@ resource "aws_iam_policy" "ecs_web_task_secrets_policy" {
           "secretsmanager:DescribeSecret"
         ]
         Resource = [
-          var.jenkins_admin_password_secret_arn,
-          var.jenkins_agent_secret_arn,
+          var.jenkins_admin_password_secret_arn
         ]
-      }
-    ]
-  })
-}
-
-resource "aws_iam_policy" "ecs_runner_task_secrets_policy" {
-  name        = "ecs-runner-task-secrets-policy"
-  path        = "/"
-  description = "Policy for ECS Task to read Jenkins secrets"
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "secretsmanager:GetSecretValue"
-        ]
-        Resource = [var.jenkins_agent_secret_arn]
       }
     ]
   })
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_web_task_secrets_policy_attachment" {
-  role       = aws_iam_role.ecs_task_role["web"].name
-  policy_arn = aws_iam_policy.ecs_web_task_secrets_policy.arn
-}
-
-resource "aws_iam_role_policy_attachment" "ecs_runner_task_secrets_policy_attachment" {
-  role       = aws_iam_role.ecs_task_role["runner"].name
-  policy_arn = aws_iam_policy.ecs_runner_task_secrets_policy.arn
-}
-
-resource "aws_iam_role_policy_attachment" "ecs_runner_execution_secrets_policy_attachment" {
-  role       = aws_iam_role.ecs_execution_role["runner"].name
-  policy_arn = aws_iam_policy.ecs_runner_task_secrets_policy.arn
+  role       = aws_iam_role.ecs_execution_role["web"].name
+  policy_arn = aws_iam_policy.ecs_web_execution_secrets_policy.arn
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_exec_task_role_policy_attachment" {

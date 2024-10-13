@@ -24,12 +24,5 @@ module "ecs_cluster" {
   jenkins_admin_username            = var.jenkins_admin_username
   jenkins_admin_password            = var.jenkins_admin_password
   jenkins_admin_password_secret_id  = var.jenkins_admin_password_secret_id
-  jenkins_agent_secret_id           = var.jenkins_agent_secret_id
-  jenkins_agent_secret              = var.jenkins_agent_secret
   jenkins_admin_password_secret_arn = var.jenkins_admin_password_arn
-  jenkins_agent_secret_arn          = var.jenkins_agent_secret_arn
 }
-
-output "jenkins_web_public_ip" {
-  value = module.ecs_cluster.jenkins_web_public_ip
-} 

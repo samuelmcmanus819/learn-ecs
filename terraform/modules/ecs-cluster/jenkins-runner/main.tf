@@ -1,3 +1,8 @@
+data "aws_region" "current" { }
+resource "aws_cloudwatch_log_group" "jenkins_runner_logs" {
+  name              = "/ecs/jenkins-agent"
+  retention_in_days = 1
+}
 
 resource "aws_ecs_task_definition" "jenkins_runner" {
   family                   = "jenkins-agent"
@@ -21,18 +26,15 @@ resource "aws_ecs_task_definition" "jenkins_runner" {
         },
         {
           name  = "JENKINS_AGENT_NAME"
-          value = "dynamic-agent-${uuid()}"
+          value = "agent1"
+        },
+        {
+          name  = "JENKINS_SECRET"
+          value = var.jenkins_agent_secret
         }
       ]
-
-      secrets = [
-        {
-          name      = "JENKINS_SECRET"
-          valueFrom = var.jenkins_agent_secret
-        }
-      ],
       linuxParameters = {
-      initProcessEnabled = true
+        initProcessEnabled = true
       }
       mountPoints = [{
         sourceVolume  = "jenkins_home"
@@ -41,14 +43,14 @@ resource "aws_ecs_task_definition" "jenkins_runner" {
         sourceVolume  = "jenkins_certs"
         containerPath = "/certs/client"
       }],
-    #   logConfiguration = {
-    #     logDriver = "awslogs"
-    #     options = {
-    #       awslogs-group         = "/ecs/jenkins-agent"
-    #       awslogs-region        = data.aws_region.current.name
-    #       awslogs-stream-prefix = "ecs"
-    #     }
-    #   }
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = "/ecs/jenkins-agent"
+          awslogs-region        = data.aws_region.current.name
+          awslogs-stream-prefix = "ecs"
+        }
+      }
     }]) 
     volume {
     name = "jenkins_home"
@@ -88,6 +90,5 @@ resource "aws_ecs_service" "jenkins_runner_service" {
   network_configuration {
     subnets          = [var.jenkins_runner_subnet_id]
     security_groups  = [var.jenkins_runner_security_group]
-    assign_public_ip = true
   }
 }

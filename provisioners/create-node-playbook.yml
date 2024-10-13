@@ -1,0 +1,5 @@
+---
+- name: Jenkins Agent Node Creation
+  hosts: all
+  tasks:
+    - include_tasks: "create-node/tasks/main.yml"

@@ -9,7 +9,7 @@ variable "availability_zone" {
 }
 
 variable "jenkins_web_ecr_image" {
-  type    = string
+  type = string
 }
 
 variable "jenkins_runner_deploy_count" {
@@ -26,24 +26,12 @@ variable "jenkins_admin_password" {
   type = string
 }
 
-variable "jenkins_agent_secret" {
-  type = string
-}
 
 variable "jenkins_admin_password_secret_id" {
   type    = string
   default = "jenkins-admin-password"
 }
 
-variable "jenkins_agent_secret_id" {
-  type    = string
-  default = "jenkins-agent-secret"
-}
-
 variable "jenkins_admin_password_arn" {
-  type    = string
-}
-
-variable "jenkins_agent_secret_arn" {
-  type    = string
+  type = string
 }
