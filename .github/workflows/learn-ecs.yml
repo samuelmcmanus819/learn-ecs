@@ -11,6 +11,7 @@ permissions:
 
 env:
   AWS_REGION: us-east-1 
+  AWS_AZ: us-east-1a
   ECR_REPOSITORY: learn-ecs
   ECR_REGISTRY: 286812073492.dkr.ecr.us-east-1.amazonaws.com
 
@@ -82,7 +83,10 @@ jobs:
     - name: Terraform Plan
       run: |
         cd terraform 
-        terraform plan -input=false -out=tfplan 
+        terraform plan -var region="${{ env.AWS_REGION }}" -var availability_zone="${{ env.AWS_AZ }}" \
+          -var jenkins_web_ecr_image="286812073492.dkr.ecr.us-east-1.amazonaws.com/learn-ecs:latest" \
+          -var jenkins_admin_password="${{ secrets.JENKINS_ADMIN_PASSWORD }}" \
+          -var jenkins_admin_password_arn="${{ secrets.JENKINS_ADMIN_PASSWORD_ARN }}" -input=false -out=tfplan 
 
     - name: Save Output to JSON
       run: |
