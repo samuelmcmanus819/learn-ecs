@@ -1,11 +1,20 @@
 variable "region" {
   type = string
 }
-variable "jenkins_web_subnet_id" {
-  type = string
+
+variable "alb_subnet_ids" {
+  type = list(string)
 }
 
-variable "jenkins_runner_subnet_id" {
+variable "jenkins_web_subnet_ids" {
+  type = list(string)
+}
+
+variable "jenkins_runner_subnet_ids" {
+  type = list(string)
+}
+
+variable "alb_security_group" {
   type = string
 }
 

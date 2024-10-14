@@ -50,24 +50,39 @@ resource "aws_iam_role_policy" "flow_logs_policy" {
   })
 }
 
-resource "aws_subnet" "ecs_vpc_public_subnet" {
+resource "aws_subnet" "ecs_vpc_public_subnets" {
+  for_each          = { for subnet in var.subnets : subnet.name => subnet }
   vpc_id            = aws_vpc.ecs_vpc.id
-  cidr_block        = "10.0.1.0/24"
-  availability_zone = var.availability_zone
+  cidr_block        = each.value.public_cidr_block
+  availability_zone = each.value.az
+  tags = {
+    Name = "jenkins-public-${each.value.name}"
+  }
 }
 
 resource "aws_internet_gateway" "ecs_internet_gateway" {
   vpc_id = aws_vpc.ecs_vpc.id
 }
 
+resource "aws_eip" "nat_eip" {
+  for_each = aws_subnet.ecs_vpc_public_subnets
+
+  vpc = true
+
+  tags = {
+    Name = "${each.value.tags["Name"]}-nat-eip"
+  }
+}
 resource "aws_nat_gateway" "ecs_nat_gateway" {
-  allocation_id = aws_eip.nat_eip.id
-  subnet_id     = aws_subnet.ecs_vpc_public_subnet.id
+  for_each      = aws_subnet.ecs_vpc_public_subnets
+  allocation_id = aws_eip.nat_eip[each.key].id
+  subnet_id     = each.value.id
+  tags = {
+    Name = "${each.value.tags["Name"]}-nat-gateway"
+  }
 }
 
-resource "aws_eip" "nat_eip" {
-  vpc = true
-}
+
 
 resource "aws_route_table" "public_route_table" {
   vpc_id = aws_vpc.ecs_vpc.id
@@ -79,32 +94,45 @@ resource "aws_route_table" "public_route_table" {
 }
 
 resource "aws_route_table_association" "public_route_table_assoc" {
-  subnet_id      = aws_subnet.ecs_vpc_public_subnet.id
+  for_each       = aws_subnet.ecs_vpc_public_subnets
+  subnet_id      = each.value.id
   route_table_id = aws_route_table.public_route_table.id
 }
 
-resource "aws_subnet" "ecs_vpc_private_subnet" {
+resource "aws_subnet" "ecs_vpc_private_subnets" {
+  for_each          = { for subnet in var.subnets : subnet.name => subnet }
   vpc_id            = aws_vpc.ecs_vpc.id
-  cidr_block        = "10.0.2.0/24"
-  availability_zone = var.availability_zone
+  cidr_block        = each.value.private_cidr_block
+  availability_zone = each.value.az
+
+  tags = {
+    Name = "jenkins-private-${each.value.name}"
+  }
 }
 
 resource "aws_route_table" "private_route_table" {
-  vpc_id = aws_vpc.ecs_vpc.id
+  for_each = aws_subnet.ecs_vpc_private_subnets
+  vpc_id   = aws_vpc.ecs_vpc.id
 
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.ecs_nat_gateway.id
+    nat_gateway_id = aws_nat_gateway.ecs_nat_gateway[each.key].id
   }
 }
 
 resource "aws_route_table_association" "private_route_table_assoc" {
-  subnet_id      = aws_subnet.ecs_vpc_private_subnet.id
-  route_table_id = aws_route_table.private_route_table.id
+  for_each       = aws_subnet.ecs_vpc_private_subnets
+  subnet_id      = each.value.id
+  route_table_id = aws_route_table.private_route_table[each.key].id
 }
 
 module "jenkins_runner_network" {
   source = "./jenkins-runner"
+  vpc_id = aws_vpc.ecs_vpc.id
+}
+
+module "alb_network" {
+  source = "./load-balancer"
   vpc_id = aws_vpc.ecs_vpc.id
 }
 
@@ -142,7 +170,7 @@ resource "aws_vpc_endpoint" "ssm" {
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
 
-  subnet_ids         = [aws_subnet.ecs_vpc_public_subnet.id] # only include one per AZ
+  subnet_ids         = [for subnet in aws_subnet.ecs_vpc_public_subnets : subnet.id] # only include one per AZ
   security_group_ids = [aws_security_group.vpc_endpoints_sg.id]
 }
 
@@ -153,7 +181,7 @@ resource "aws_vpc_endpoint" "ssmmessages" {
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
 
-  subnet_ids         = [aws_subnet.ecs_vpc_public_subnet.id] # only include one per AZ
+  subnet_ids         = [for subnet in aws_subnet.ecs_vpc_public_subnets : subnet.id] # only include one per AZ
   security_group_ids = [aws_security_group.vpc_endpoints_sg.id]
 }
 
@@ -164,6 +192,6 @@ resource "aws_vpc_endpoint" "ecs" {
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
 
-  subnet_ids         = [aws_subnet.ecs_vpc_public_subnet.id] # only include one per AZ
+  subnet_ids         = [for subnet in aws_subnet.ecs_vpc_public_subnets : subnet.id] # only include one per AZ
   security_group_ids = [aws_security_group.vpc_endpoints_sg.id]
 }

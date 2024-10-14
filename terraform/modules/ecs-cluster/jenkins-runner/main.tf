@@ -88,7 +88,7 @@ resource "aws_ecs_service" "jenkins_runner_service" {
   enable_ecs_managed_tags = true
 
   network_configuration {
-    subnets          = [var.jenkins_runner_subnet_id]
+    subnets          = var.jenkins_runner_subnet_ids
     security_groups  = [var.jenkins_runner_security_group]
   }
 }

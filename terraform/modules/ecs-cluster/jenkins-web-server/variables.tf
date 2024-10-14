@@ -2,6 +2,10 @@ variable "region" {
   type = string
 }
 
+variable "jenkins_vpc_id" {
+  type = string
+}
+
 variable "ecr_registry" {
   type = string
 }
@@ -10,7 +14,15 @@ variable "jenkins_web_ecr_image" {
   type = string
 }
 
-variable "jenkins_web_subnet_id" {
+variable "jenkins_web_subnet_ids" {
+  type = list(string)
+}
+
+variable "alb_subnet_ids" {
+  type = list(string)
+}
+
+variable "alb_security_group" {
   type = string
 }
 

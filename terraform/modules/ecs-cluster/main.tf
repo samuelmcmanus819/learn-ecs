@@ -17,9 +17,12 @@ resource "aws_ecs_cluster" "jenkins_cluster" {
 module "jenkins_web_server" {
   source                       = "./jenkins-web-server"
   region                       = var.region
+  jenkins_vpc_id               = var.jenkins_vpc_id
   ecr_registry                 = var.ecr_registry
   jenkins_web_ecr_image        = var.jenkins_web_ecr_image
-  jenkins_web_subnet_id        = var.jenkins_web_subnet_id
+  alb_subnet_ids               = var.alb_subnet_ids
+  jenkins_web_subnet_ids       = var.jenkins_web_subnet_ids
+  alb_security_group           = var.alb_security_group
   jenkins_web_security_group   = var.jenkins_web_security_group
   jenkins_volume_id            = aws_efs_file_system.jenkins_volume.id
   jenkins_home_access_point_id = aws_efs_access_point.jenkins_home.id
@@ -37,7 +40,7 @@ module "jenkins_runner" {
   source                        = "./jenkins-runner"
   ecr_registry                  = var.ecr_registry
   ecr_image                     = var.jenkins_runner_ecr_image
-  jenkins_runner_subnet_id      = var.jenkins_runner_subnet_id
+  jenkins_runner_subnet_ids     = var.jenkins_runner_subnet_ids
   jenkins_runner_security_group = var.jenkins_runner_security_group
   jenkins_volume_id             = aws_efs_file_system.jenkins_volume.id
   jenkins_home_access_point_id  = aws_efs_access_point.jenkins_home.id

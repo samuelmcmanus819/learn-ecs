@@ -2,8 +2,8 @@ variable "jenkins_cluster_id" {
     type = string
 }
 
-variable "jenkins_runner_subnet_id" {
-    type = string
+variable "jenkins_runner_subnet_ids" {
+    type = list(string)
 }
 
 variable "jenkins_runner_security_group" {

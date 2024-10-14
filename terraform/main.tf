@@ -9,18 +9,20 @@ module "scps" {
 }
 
 module "ecs_network" {
-  source            = "./modules/ecs-network"
-  region            = var.region
-  availability_zone = var.availability_zone
-  log_bucket_arn    = module.logging_bucket.bucket_arn
+  source          = "./modules/ecs-network"
+  region          = var.region
+  subnets = var.subnets
+  log_bucket_arn  = module.logging_bucket.bucket_arn
 }
 
 module "ecs_cluster" {
   depends_on                        = [module.scps]
   source                            = "./modules/ecs-cluster"
   region                            = var.region
-  jenkins_web_subnet_id             = module.ecs_network.web_server_subnet_id
-  jenkins_runner_subnet_id          = module.ecs_network.runner_subnet_id
+  alb_subnet_ids                    = module.ecs_network.public_subnet_ids
+  jenkins_web_subnet_ids            = module.ecs_network.public_subnet_ids
+  jenkins_runner_subnet_ids         = module.ecs_network.private_subnet_ids
+  alb_security_group                = module.ecs_network.alb_security_group
   jenkins_web_security_group        = module.ecs_network.web_server_security_group
   jenkins_runner_security_group     = module.ecs_network.runner_security_group
   jenkins_efs_security_group        = module.ecs_network.efs_security_group

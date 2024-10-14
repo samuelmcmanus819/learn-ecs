@@ -4,6 +4,13 @@
 #   retention_in_days = 30
 # }
 
+module "load_balancer" {
+  source = "./load-balancer"
+  alb_security_group = var.alb_security_group
+  alb_subnet_ids = var.alb_subnet_ids
+  vpc_id = var.jenkins_vpc_id
+}
+
 resource "aws_ecs_task_definition" "jenkins_web_task" {
   family                   = "jenkins-web-task"
   network_mode             = "awsvpc" # Required for Fargate
@@ -97,8 +104,14 @@ resource "aws_ecs_service" "jenkins_web_service" {
   enable_execute_command = true
   enable_ecs_managed_tags = true
 
+  load_balancer {
+    target_group_arn = module.load_balancer.target_group_arn
+    container_name = "jenkins_web"
+    container_port = 8080
+  }
+
   network_configuration {
-    subnets          = [var.jenkins_web_subnet_id]
+    subnets          = var.jenkins_web_subnet_ids
     security_groups  = [var.jenkins_web_security_group]
     assign_public_ip = true
   }

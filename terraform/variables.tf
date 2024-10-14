@@ -3,9 +3,25 @@ variable "region" {
   default = "us-east-1"
 }
 
-variable "availability_zone" {
-  type    = string
-  default = "us-east-1a"
+variable "subnets" {
+  type = list(object({
+    name       = string
+    public_cidr_block = string
+    private_cidr_block = string
+    az         = string
+  }))
+
+  default = [{
+    az         = "us-east-1a"
+    public_cidr_block = "10.0.1.0/24"
+    private_cidr_block = "10.0.3.0/24"
+    name       = "subnet_a"
+    }, {
+    az         = "us-east-1b"
+    public_cidr_block = "10.0.2.0/24"
+    private_cidr_block = "10.0.4.0/24"
+    name       = "subnet_b"
+  }]
 }
 
 variable "ecr_registry" {
