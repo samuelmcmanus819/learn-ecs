@@ -5,3 +5,7 @@ variable "vpc_id" {
 variable "runner_sg" {
     type = string
 }
+
+variable "alb_security_group" {
+    type = string
+}

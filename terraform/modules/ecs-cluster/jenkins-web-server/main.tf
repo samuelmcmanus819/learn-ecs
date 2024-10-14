@@ -114,7 +114,6 @@ resource "aws_ecs_service" "jenkins_web_service" {
   network_configuration {
     subnets          = var.jenkins_web_subnet_ids
     security_groups  = [var.jenkins_web_security_group]
-    assign_public_ip = true
   }
 }
 

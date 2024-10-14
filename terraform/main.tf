@@ -20,7 +20,7 @@ module "ecs_cluster" {
   source                            = "./modules/ecs-cluster"
   region                            = var.region
   alb_subnet_ids                    = module.ecs_network.public_subnet_ids
-  jenkins_web_subnet_ids            = module.ecs_network.public_subnet_ids
+  jenkins_web_subnet_ids            = module.ecs_network.private_subnet_ids
   jenkins_runner_subnet_ids         = module.ecs_network.private_subnet_ids
   alb_security_group                = module.ecs_network.alb_security_group
   jenkins_web_security_group        = module.ecs_network.web_server_security_group
