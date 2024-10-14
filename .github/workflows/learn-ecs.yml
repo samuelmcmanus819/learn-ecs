@@ -149,6 +149,7 @@ jobs:
 
     - name: Terraform Destroy
       run: |
+        touch /tmp/jenkins_output.txt
         cd terraform 
         terraform destroy -var availability_zone="${{ env.AWS_AZ }}" \
           -var jenkins_web_ecr_image="286812073492.dkr.ecr.us-east-1.amazonaws.com/learn-ecs:latest" \
