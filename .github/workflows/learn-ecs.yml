@@ -146,6 +146,16 @@ jobs:
     - name: Empty S3 Buckets
       run: |
         cd terraform
+        aws s3api list-object-versions --bucket learn-ecs-logging-bucket --output json \
+          | jq -r '.Versions[] | "aws s3api delete-object --bucket learn-ecs-logging-bucket --key \(.Key) --version-id \(.VersionId)"' \
+          | bash
+
+        aws s3api list-object-versions --bucket learn-ecs-logging-bucket --output json \
+          | jq -r '.DeleteMarkers[] | "aws s3api delete-object --bucket learn-ecs-logging-bucket --key \(.Key) --version-id \(.VersionId)"' \
+          | bash
+
+# Finally, delete the objects themselves if necessary
+aws s3 rm s3://learn-ecs-logging-bucket --recursive
         aws s3 rm s3://learn-ecs-logging-bucket --recursive
 
     - name: Terraform Destroy
