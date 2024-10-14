@@ -1,5 +1,5 @@
-output "jenkins_web_public_ip" {
-  value = module.ecs_cluster.jenkins_web_public_ip
+output "jenkins_web_dns" {
+  value = module.ecs_cluster.jenkins_web_dns
 }
 
 output "agent_secret" {

@@ -97,6 +97,7 @@ resource "aws_ecs_service" "jenkins_web_service" {
   name            = "jenkins_web_service"
   cluster         = var.jenkins_cluster_id
   task_definition = aws_ecs_task_definition.jenkins_web_task.arn
+  health_check_grace_period_seconds = 600
   desired_count   = 1
   deployment_maximum_percent = 100
   deployment_minimum_healthy_percent = 0
