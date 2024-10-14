@@ -1,0 +1,21 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Sid": "DenyNonECRImagesForECS",
+        "Effect": "Deny",
+        "Action": [
+          "ecs:RunTask",
+          "ecs:UpdateService",
+          "ecs:RegisterTaskDefinition"
+        ],
+        "Resource": "*",
+        "Condition": {
+          "StringNotLike": {
+            "ecs:container-image": "arn:aws:ecr:*:${account_id}:repository/*"
+          }
+        }
+      }
+    ]
+  }
+  

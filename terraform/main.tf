@@ -3,6 +3,11 @@ module "logging_bucket" {
   logging_bucket_name = "learn-ecs-logging-bucket"
 }
 
+module "scps" {
+  source        = "./modules/scps"
+  aws_admin_arn = var.aws_admin_arn
+}
+
 module "ecs_network" {
   source            = "./modules/ecs-network"
   region            = var.region
@@ -11,6 +16,7 @@ module "ecs_network" {
 }
 
 module "ecs_cluster" {
+  depends_on                        = [module.scps]
   source                            = "./modules/ecs-cluster"
   region                            = var.region
   jenkins_web_subnet_id             = module.ecs_network.web_server_subnet_id
@@ -18,6 +24,8 @@ module "ecs_cluster" {
   jenkins_web_security_group        = module.ecs_network.web_server_security_group
   jenkins_runner_security_group     = module.ecs_network.runner_security_group
   jenkins_efs_security_group        = module.ecs_network.efs_security_group
+  ecr_registry                      = var.ecr_registry
+  jenkins_runner_ecr_image          = var.jenkins_runner_ecr_image
   jenkins_web_ecr_image             = var.jenkins_web_ecr_image
   jenkins_vpc_id                    = module.ecs_network.jenkins_vpc_id
   jenkins_runner_deploy_count       = var.jenkins_runner_deploy_count
