@@ -41,3 +41,11 @@ variable "task_role_arn" {
 variable "deploy_count" {
     type = number
 }
+
+variable "ecr_registry" {
+    type = string
+}
+
+variable "ecr_image" {
+    type = string
+}

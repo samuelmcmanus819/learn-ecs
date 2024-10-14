@@ -17,6 +17,7 @@ resource "aws_ecs_cluster" "jenkins_cluster" {
 module "jenkins_web_server" {
   source                       = "./jenkins-web-server"
   region                       = var.region
+  ecr_registry                 = var.ecr_registry
   jenkins_web_ecr_image        = var.jenkins_web_ecr_image
   jenkins_web_subnet_id        = var.jenkins_web_subnet_id
   jenkins_web_security_group   = var.jenkins_web_security_group
@@ -34,6 +35,8 @@ module "jenkins_web_server" {
 
 module "jenkins_runner" {
   source                        = "./jenkins-runner"
+  ecr_registry                  = var.ecr_registry
+  ecr_image                     = var.jenkins_runner_ecr_image
   jenkins_runner_subnet_id      = var.jenkins_runner_subnet_id
   jenkins_runner_security_group = var.jenkins_runner_security_group
   jenkins_volume_id             = aws_efs_file_system.jenkins_volume.id

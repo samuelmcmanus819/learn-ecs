@@ -8,6 +8,14 @@ variable "availability_zone" {
   default = "us-east-1a"
 }
 
+variable "ecr_registry" {
+  type = string
+}
+
+variable "jenkins_runner_ecr_image" {
+  type = string
+}
+
 variable "jenkins_web_ecr_image" {
   type = string
 }
@@ -33,5 +41,9 @@ variable "jenkins_admin_password_secret_id" {
 }
 
 variable "jenkins_admin_password_arn" {
+  type = string
+}
+
+variable "aws_admin_arn" {
   type = string
 }

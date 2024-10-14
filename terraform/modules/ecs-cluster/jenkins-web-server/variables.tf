@@ -2,6 +2,10 @@ variable "region" {
   type = string
 }
 
+variable "ecr_registry" {
+  type = string
+}
+
 variable "jenkins_web_ecr_image" {
   type = string
 }

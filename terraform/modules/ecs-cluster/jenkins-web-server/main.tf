@@ -15,7 +15,7 @@ resource "aws_ecs_task_definition" "jenkins_web_task" {
 
   container_definitions = jsonencode([{
     name      = "jenkins_web"
-    image     = "${var.jenkins_web_ecr_image}"
+    image     = "${var.ecr_registry}/${var.jenkins_web_ecr_image}"
     essential = true
     portMappings = [{
       name          = "http"

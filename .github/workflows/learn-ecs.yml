@@ -12,7 +12,8 @@ permissions:
 env:
   AWS_REGION: us-east-1 
   AWS_AZ: us-east-1a
-  ECR_REPOSITORY: learn-ecs
+  JENKINS_RUNNER_REPOSITORY: jenkins-runner
+  JENKINS_WEB_REPOSITORY: jenkins-web
   ECR_REGISTRY: 286812073492.dkr.ecr.us-east-1.amazonaws.com
 
 jobs:
@@ -41,11 +42,9 @@ jobs:
         else
           BRANCH_NAME=${GITHUB_REF##*/}
         fi
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$BRANCH_NAME -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -f docker/Dockerfile .
+        docker build -t $ECR_REGISTRY/$JENKINS_WEB_REPOSITORY:$BRANCH_NAME -t $ECR_REGISTRY/$JENKINS_WEB_REPOSITORY:latest -f docker/Dockerfile .
 
-    - name: Push image to Amazon ECR
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+    - name: Push jenkins web image to Amazon ECR
       if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
       run: |
         if [ ${{ github.event_name }} == 'pull_request' ]; then
@@ -53,8 +52,15 @@ jobs:
         else
           BRANCH_NAME=${GITHUB_REF##*/}
         fi
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$BRANCH_NAME
+        docker push $ECR_REGISTRY/$JENKINS_WEB_REPOSITORY:latest
+        docker push $ECR_REGISTRY/$JENKINS_WEB_REPOSITORY:$BRANCH_NAME
+
+    - name: Push jenkins runner image to Amazon ECR
+      if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
+      run: |
+        docker pull jenkins/inbound-agent:latest
+        docker image tag jenkins/inbound-agent:latest $ECR_REGISTRY/$JENKINS_RUNNER_REPOSITORY:latest
+        docker push $ECR_REGISTRY/$JENKINS_RUNNER_REPOSITORY:latest
 
   terraform-apply:
     name: 'Terraform Apply'
@@ -84,10 +90,16 @@ jobs:
       run: |
         touch /tmp/jenkins_output.txt
         cd terraform 
-        terraform plan -var region="${{ env.AWS_REGION }}" -var availability_zone="${{ env.AWS_AZ }}" \
-          -var jenkins_web_ecr_image="286812073492.dkr.ecr.us-east-1.amazonaws.com/learn-ecs:latest" \
+        terraform plan \
+          -var region="${{ env.AWS_REGION }}" \
+          -var availability_zone="${{ env.AWS_AZ }}" \
+          -var ecr_registry="${{ env.ECR_REGISTRY }}" \
+          -var jenkins_runner_ecr_image="${{ env.JENKINS_RUNNER_REPOSITORY }}" \
+          -var jenkins_web_ecr_image="${{ env.JENKINS_WEB_REPOSITORY }}:latest" \
           -var jenkins_admin_password="${{ secrets.JENKINS_ADMIN_PASSWORD }}" \
-          -var jenkins_admin_password_arn="${{ secrets.JENKINS_ADMIN_PASSWORD_ARN }}" -input=false -out=tfplan 
+          -var jenkins_admin_password_arn="${{ secrets.JENKINS_ADMIN_PASSWORD_ARN }}" \
+          -var jenkins_runner_deploy_count=1 \
+          -var aws_admin_arn="arn:aws:iam::286812073492:user/Sam" -input=false -out=tfplan 
 
     - name: Save Output to JSON
       run: |
@@ -159,8 +171,14 @@ jobs:
       run: |
         touch /tmp/jenkins_output.txt
         cd terraform 
-        terraform destroy -var availability_zone="${{ env.AWS_AZ }}" \
-          -var jenkins_web_ecr_image="286812073492.dkr.ecr.us-east-1.amazonaws.com/learn-ecs:latest" \
+        terraform destroy \
+          -var region="${{ env.AWS_REGION }}" \
+          -var availability_zone="${{ env.AWS_AZ }}" \
+          -var ecr_registry="${{ env.ECR_REGISTRY }}" \
+          -var jenkins_runner_ecr_image="${{ env.JENKINS_RUNNER_REPOSITORY }}" \
+          -var jenkins_web_ecr_image="${{ env.JENKINS_WEB_REPOSITORY }}:latest" \
           -var jenkins_admin_password="${{ secrets.JENKINS_ADMIN_PASSWORD }}" \
-          -var jenkins_admin_password_arn="${{ secrets.JENKINS_ADMIN_PASSWORD_ARN }}" -input=false \
-          -auto-approve
+          -var jenkins_admin_password_arn="${{ secrets.JENKINS_ADMIN_PASSWORD_ARN }}" \
+          -var jenkins_runner_deploy_count=1 \
+          -var aws_admin_arn="arn:aws:iam::286812073492:user/Sam" \ 
+          -input=false -auto-approve

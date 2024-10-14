@@ -16,7 +16,7 @@ resource "aws_ecs_task_definition" "jenkins_runner" {
   container_definitions = jsonencode([
     {
       name  = "jenkins-agent"
-      image = "jenkins/inbound-agent:latest"
+      image = "${var.ecr_registry}/${var.ecr_image}"
       essential = true
       
       environment = [
