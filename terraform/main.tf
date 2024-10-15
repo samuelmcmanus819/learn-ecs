@@ -8,6 +8,10 @@ module "scps" {
   aws_admin_arn = var.aws_admin_arn
 }
 
+module "waf" {
+  source = "./modules/waf"
+}
+
 module "ecs_network" {
   source         = "./modules/ecs-network"
   region         = var.region
@@ -35,4 +39,5 @@ module "ecs_cluster" {
   jenkins_admin_password            = var.jenkins_admin_password
   jenkins_admin_password_secret_id  = var.jenkins_admin_password_secret_id
   jenkins_admin_password_secret_arn = var.jenkins_admin_password_arn
+  web_acl_arn                       = module.waf.web_acl_arn
 }

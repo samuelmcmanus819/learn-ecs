@@ -9,6 +9,7 @@ module "load_balancer" {
   alb_security_group = var.alb_security_group
   alb_subnet_ids     = var.alb_subnet_ids
   vpc_id             = var.jenkins_vpc_id
+  web_acl_arn        = var.web_acl_arn
 }
 
 resource "aws_ecs_task_definition" "jenkins_web_task" {

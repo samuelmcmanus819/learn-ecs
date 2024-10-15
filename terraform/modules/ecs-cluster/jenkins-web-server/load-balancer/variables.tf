@@ -9,3 +9,7 @@ variable "alb_subnet_ids" {
 variable "vpc_id" {
   type = string
 }
+
+variable "web_acl_arn" {
+  type = string
+}

@@ -9,6 +9,12 @@ resource "aws_lb" "jenkins_web_alb" {
   drop_invalid_header_fields = true
 }
 
+# Step 2: Attach WAF to ALB
+resource "aws_wafv2_web_acl_association" "alb_waf_association" {
+  resource_arn = aws_lb.jenkins_web_alb.arn
+  web_acl_arn  = var.web_acl_arn
+}
+
 resource "aws_lb_target_group" "jenkins_web_target_group" {
   name        = "jenkins-web-target-group"
   port        = 8080

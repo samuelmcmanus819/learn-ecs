@@ -34,6 +34,7 @@ module "jenkins_web_server" {
   jenkins_runner_count         = var.jenkins_runner_deploy_count
   execution_role_arn           = aws_iam_role.ecs_execution_role["web"].arn
   task_role_arn                = aws_iam_role.ecs_task_role["web"].arn
+  web_acl_arn                  = var.web_acl_arn
 }
 
 module "jenkins_runner" {
