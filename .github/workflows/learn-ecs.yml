@@ -157,11 +157,11 @@ jobs:
       run: |
         cd terraform
         aws s3api list-object-versions --bucket learn-ecs-logging-bucket --output json \
-          | jq -r '.Versions[] | "aws s3api delete-object --bucket learn-ecs-logging-bucket --key \(.Key) --version-id \(.VersionId)"' \
+          | jq -r '.Versions[]? | "aws s3api delete-object --bucket learn-ecs-logging-bucket --key \(.Key) --version-id \(.VersionId)"' \
           | bash
 
         aws s3api list-object-versions --bucket learn-ecs-logging-bucket --output json \
-          | jq -r '.DeleteMarkers[] | "aws s3api delete-object --bucket learn-ecs-logging-bucket --key \(.Key) --version-id \(.VersionId)"' \
+          | jq -r '.DeleteMarkers[]? | "aws s3api delete-object --bucket learn-ecs-logging-bucket --key \(.Key) --version-id \(.VersionId)"' \
           | bash
         aws s3 rm s3://learn-ecs-logging-bucket --recursive
 
