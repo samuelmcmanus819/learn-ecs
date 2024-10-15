@@ -137,9 +137,9 @@ module "alb_network" {
 }
 
 module "jenkins_web_server_network" {
-  source    = "./jenkins-web-server"
-  vpc_id    = aws_vpc.ecs_vpc.id
-  runner_sg = module.jenkins_runner_network.security_group_id
+  source             = "./jenkins-web-server"
+  vpc_id             = aws_vpc.ecs_vpc.id
+  runner_sg          = module.jenkins_runner_network.security_group_id
   alb_security_group = module.alb_network.alb_security_group
 }
 

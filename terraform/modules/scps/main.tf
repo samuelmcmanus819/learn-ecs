@@ -42,3 +42,14 @@ resource "aws_organizations_policy_attachment" "restrict_image_source_scp_attach
   target_id = data.aws_caller_identity.current.id
 }
 
+# Restrict public IP addresses on ECS resources
+resource "aws_organizations_policy" "restrict_public_ecs_services" {
+  name        = "RestrictPublicECS"
+  description = "Prevents ECS services from being created with a public IP"
+  content     = file("${path.module}/../../../scps/restrict-public-ecs-services.json")
+  type        = "SERVICE_CONTROL_POLICY"
+}
+resource "aws_organizations_policy_attachment" "restrict_public_ecs_services_attachment" {
+  policy_id = aws_organizations_policy.restrict_public_ecs_services.id
+  target_id = data.aws_organizations_organization.my_org.roots[0].id
+}

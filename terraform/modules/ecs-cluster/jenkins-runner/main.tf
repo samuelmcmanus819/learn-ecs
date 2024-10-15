@@ -1,8 +1,8 @@
-# data "aws_region" "current" { }
-# resource "aws_cloudwatch_log_group" "jenkins_runner_logs" {
-#   name              = "/ecs/jenkins-agent"
-#   retention_in_days = 1
-# }
+data "aws_region" "current" {}
+resource "aws_cloudwatch_log_group" "jenkins_runner_logs" {
+  name              = "/ecs/jenkins-agent"
+  retention_in_days = 1
+}
 
 resource "aws_ecs_task_definition" "jenkins_runner" {
   family                   = "jenkins-agent"
@@ -15,10 +15,10 @@ resource "aws_ecs_task_definition" "jenkins_runner" {
 
   container_definitions = jsonencode([
     {
-      name  = "jenkins-agent"
-      image = "${var.ecr_registry}/${var.ecr_image}"
+      name      = "jenkins-agent"
+      image     = "${var.ecr_registry}/${var.ecr_image}"
       essential = true
-      
+
       environment = [
         {
           name  = "JENKINS_URL"
@@ -43,16 +43,16 @@ resource "aws_ecs_task_definition" "jenkins_runner" {
         sourceVolume  = "jenkins_certs"
         containerPath = "/certs/client"
       }],
-      # logConfiguration = {
-      #   logDriver = "awslogs"
-      #   options = {
-      #     awslogs-group         = "/ecs/jenkins-agent"
-      #     awslogs-region        = data.aws_region.current.name
-      #     awslogs-stream-prefix = "ecs"
-      #   }
-      # }
-    }]) 
-    volume {
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = "/ecs/jenkins-agent"
+          awslogs-region        = data.aws_region.current.name
+          awslogs-stream-prefix = "ecs"
+        }
+      }
+  }])
+  volume {
     name = "jenkins_home"
     efs_volume_configuration {
       file_system_id     = var.jenkins_volume_id
@@ -77,18 +77,18 @@ resource "aws_ecs_task_definition" "jenkins_runner" {
 }
 
 resource "aws_ecs_service" "jenkins_runner_service" {
-  name            = "jenkins-runner-service"
-  cluster         = var.jenkins_cluster_id
-  task_definition = aws_ecs_task_definition.jenkins_runner.arn
-  desired_count   = var.deploy_count
-  deployment_maximum_percent = 100
+  name                               = "jenkins-runner-service"
+  cluster                            = var.jenkins_cluster_id
+  task_definition                    = aws_ecs_task_definition.jenkins_runner.arn
+  desired_count                      = var.deploy_count
+  deployment_maximum_percent         = 100
   deployment_minimum_healthy_percent = 0
-  launch_type     = "FARGATE" # Specifies Fargate
-  enable_execute_command = true
-  enable_ecs_managed_tags = true
+  launch_type                        = "FARGATE" # Specifies Fargate
+  enable_execute_command             = true
+  enable_ecs_managed_tags            = true
 
   network_configuration {
-    subnets          = var.jenkins_runner_subnet_ids
-    security_groups  = [var.jenkins_runner_security_group]
+    subnets         = var.jenkins_runner_subnet_ids
+    security_groups = [var.jenkins_runner_security_group]
   }
 }

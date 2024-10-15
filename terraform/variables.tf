@@ -5,22 +5,22 @@ variable "region" {
 
 variable "subnets" {
   type = list(object({
-    name       = string
-    public_cidr_block = string
+    name               = string
+    public_cidr_block  = string
     private_cidr_block = string
-    az         = string
+    az                 = string
   }))
 
   default = [{
-    az         = "us-east-1a"
-    public_cidr_block = "10.0.1.0/24"
+    az                 = "us-east-1a"
+    public_cidr_block  = "10.0.1.0/24"
     private_cidr_block = "10.0.3.0/24"
-    name       = "subnet_a"
+    name               = "subnet_a"
     }, {
-    az         = "us-east-1b"
-    public_cidr_block = "10.0.2.0/24"
+    az                 = "us-east-1b"
+    public_cidr_block  = "10.0.2.0/24"
     private_cidr_block = "10.0.4.0/24"
-    name       = "subnet_b"
+    name               = "subnet_b"
   }]
 }
 

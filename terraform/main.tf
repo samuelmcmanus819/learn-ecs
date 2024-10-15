@@ -9,10 +9,10 @@ module "scps" {
 }
 
 module "ecs_network" {
-  source          = "./modules/ecs-network"
-  region          = var.region
-  subnets = var.subnets
-  log_bucket_arn  = module.logging_bucket.bucket_arn
+  source         = "./modules/ecs-network"
+  region         = var.region
+  subnets        = var.subnets
+  log_bucket_arn = module.logging_bucket.bucket_arn
 }
 
 module "ecs_cluster" {

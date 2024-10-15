@@ -96,7 +96,7 @@ resource "aws_iam_policy" "ecs_web_execution_secrets_policy" {
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_web_execution_secrets_policy_attachment" {
-  role = aws_iam_role.ecs_execution_role["web"].name
+  role       = aws_iam_role.ecs_execution_role["web"].name
   policy_arn = aws_iam_policy.ecs_web_execution_secrets_policy.arn
 }
 

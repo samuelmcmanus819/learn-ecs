@@ -4,10 +4,10 @@ variable "region" {
 
 variable "subnets" {
   type = list(object({
-    name       = string
-    public_cidr_block = string
+    name               = string
+    public_cidr_block  = string
     private_cidr_block = string
-    az         = string
+    az                 = string
   }))
 }
 

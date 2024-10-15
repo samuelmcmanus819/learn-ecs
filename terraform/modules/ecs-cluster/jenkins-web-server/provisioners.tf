@@ -1,8 +1,8 @@
 resource "null_resource" "jenkins_agent_node" {
-  depends_on = [ module.load_balancer, null_resource.wait_for_task_and_fetch_eni ]
+  depends_on = [module.load_balancer, null_resource.wait_for_task_and_fetch_eni]
   # This will make sure the resource is recreated if the Jenkins URL changes
   triggers = {
-    jenkins_url = "http://${module.load_balancer.jenkins_web_dns}"
+    jenkins_url  = "http://${module.load_balancer.jenkins_web_dns}"
     runner_count = var.jenkins_runner_count
   }
 
@@ -68,8 +68,8 @@ resource "null_resource" "jenkins_agent_node" {
 }
 
 data "local_file" "jenkins_output" {
-  depends_on = [ null_resource.jenkins_agent_node ]
-  filename = "/tmp/jenkins_output.txt"
+  depends_on = [null_resource.jenkins_agent_node]
+  filename   = "/tmp/jenkins_output.txt"
 }
 
 output "agent_secret" {

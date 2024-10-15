@@ -64,9 +64,9 @@ variable "jenkins_admin_password_arn" {
 }
 
 variable "execution_role_arn" {
-    type = string
+  type = string
 }
 
 variable "task_role_arn" {
-    type = string
+  type = string
 }
