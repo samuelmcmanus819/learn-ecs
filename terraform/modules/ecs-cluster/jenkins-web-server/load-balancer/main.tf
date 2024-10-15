@@ -1,9 +1,12 @@
+# ALB is intended to be exposed to the internet
+#trivy:ignore:AVD-AWS-0053
 resource "aws_lb" "jenkins_web_alb" {
-  name               = "jenkins-web-alb"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [var.alb_security_group]
-  subnets            = var.alb_subnet_ids
+  name                       = "jenkins-web-alb"
+  internal                   = false
+  load_balancer_type         = "application"
+  security_groups            = [var.alb_security_group]
+  subnets                    = var.alb_subnet_ids
+  drop_invalid_header_fields = true
 }
 
 resource "aws_lb_target_group" "jenkins_web_target_group" {
@@ -14,6 +17,8 @@ resource "aws_lb_target_group" "jenkins_web_target_group" {
   target_type = "ip"
 }
 
+# Partial TLS termination is a future improvement
+#trivy:ignore:AVD-AWS-0054
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.jenkins_web_alb.arn
   port              = "80"

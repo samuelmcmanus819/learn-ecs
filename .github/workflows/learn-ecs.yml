@@ -11,7 +11,6 @@ permissions:
 
 env:
   AWS_REGION: us-east-1 
-  AWS_AZ: us-east-1a
   JENKINS_RUNNER_REPOSITORY: jenkins-runner
   JENKINS_WEB_REPOSITORY: jenkins-web
   ECR_REGISTRY: 286812073492.dkr.ecr.us-east-1.amazonaws.com
@@ -92,7 +91,6 @@ jobs:
         cd terraform 
         terraform plan \
           -var region="${{ env.AWS_REGION }}" \
-          -var availability_zone="${{ env.AWS_AZ }}" \
           -var ecr_registry="${{ env.ECR_REGISTRY }}" \
           -var jenkins_runner_ecr_image="${{ env.JENKINS_RUNNER_REPOSITORY }}" \
           -var jenkins_web_ecr_image="${{ env.JENKINS_WEB_REPOSITORY }}:latest" \
@@ -173,7 +171,6 @@ jobs:
         cd terraform 
         terraform destroy \
           -var region="${{ env.AWS_REGION }}" \
-          -var availability_zone="${{ env.AWS_AZ }}" \
           -var ecr_registry="${{ env.ECR_REGISTRY }}" \
           -var jenkins_runner_ecr_image="${{ env.JENKINS_RUNNER_REPOSITORY }}" \
           -var jenkins_web_ecr_image="${{ env.JENKINS_WEB_REPOSITORY }}:latest" \
