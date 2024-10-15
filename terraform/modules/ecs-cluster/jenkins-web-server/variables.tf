@@ -70,3 +70,7 @@ variable "execution_role_arn" {
 variable "task_role_arn" {
   type = string
 }
+
+variable "web_acl_arn" {
+  type = string
+}

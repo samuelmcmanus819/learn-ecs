@@ -1,8 +1,8 @@
 data "aws_region" "current" {}
-resource "aws_cloudwatch_log_group" "jenkins_runner_logs" {
-  name              = "/ecs/jenkins-agent"
-  retention_in_days = 1
-}
+# resource "aws_cloudwatch_log_group" "jenkins_runner_logs" {
+#   name              = "/ecs/jenkins-agent"
+#   retention_in_days = 1
+# }
 
 resource "aws_ecs_task_definition" "jenkins_runner" {
   family                   = "jenkins-agent"
@@ -43,14 +43,14 @@ resource "aws_ecs_task_definition" "jenkins_runner" {
         sourceVolume  = "jenkins_certs"
         containerPath = "/certs/client"
       }],
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          awslogs-group         = "/ecs/jenkins-agent"
-          awslogs-region        = data.aws_region.current.name
-          awslogs-stream-prefix = "ecs"
-        }
-      }
+      # logConfiguration = {
+      #   logDriver = "awslogs"
+      #   options = {
+      #     awslogs-group         = "/ecs/jenkins-agent"
+      #     awslogs-region        = data.aws_region.current.name
+      #     awslogs-stream-prefix = "ecs"
+      #   }
+      # }
   }])
   volume {
     name = "jenkins_home"

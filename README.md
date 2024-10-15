@@ -8,17 +8,33 @@ This project sets up a Jenkins web server running on Amazon ECS (Elastic Contain
 - [Usage](#usage)
 - [Resources Created](#resources-created)
 
+## Purpose
+The purpose of this project is for me to get more familiar with Terraform, ECS, and related AWS security services. This isn't intended to be used as a module, primarily because many of the resources (like SCPs and the WAF) would typically be managed in external modules/repos.
 
 ## Features
 
 - ECS Fargate cluster with a Jenkins service
-    - Jenkins web server 
+    - Jenkins web server behind an ALB to enable security add-ons
     - Configurable number of runners
 - Persistent storage using Amazon EFS
-- Reasonably secure networking configuration
+- WAF attached to ALB, utilizing default AWS ruleset to protect against common attacks
+- SCPs implemented to prevent some insecure configurations
+- Strict networking rules to ensure minimal threat surface
+- Logging bucket attached to 
 - Support for executing commands in the container
 - Devcontainer for centrally-managed development environment
 - GitHub workflow for automated deployments
+- AWS flow logs enabled in VPC
+
+## Future Work
+- Implement a basic WAF and connect to the ALB
+
+## Recommended Improvements
+- There is no TLS used on the Jenkins server, because I didn't want to buy a domain name
+  - Option 1: Implement partial TLS termination - buy a domain, plug it into the ALB, and create a certificate for it, then enable a 443 listener on the LB forwarded to 8080 on Jenkins
+  - Option 2: Implement full TLS termination - buy a domain, plug it into the ALB, and create a certificate for it, install the cert on the Jenkins server and have the ALB forward from 443 to 443
+- Implement access logging on ALB
+- Enable Cloudwatch logging for ECS tasks (code is already there, but I didn't want to spend the money keeping it on)
 
 ## Prerequisites
 
