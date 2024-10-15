@@ -177,5 +177,5 @@ jobs:
           -var jenkins_admin_password="${{ secrets.JENKINS_ADMIN_PASSWORD }}" \
           -var jenkins_admin_password_arn="${{ secrets.JENKINS_ADMIN_PASSWORD_ARN }}" \
           -var jenkins_runner_deploy_count=1 \
-          -var aws_admin_arn="arn:aws:iam::286812073492:user/Sam" \ 
+          -var aws_admin_arn="arn:aws:iam::286812073492:user/Sam" \
           -input=false -auto-approve
