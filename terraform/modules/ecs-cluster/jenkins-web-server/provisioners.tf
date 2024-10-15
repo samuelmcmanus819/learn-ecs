@@ -1,33 +1,27 @@
-# Run a local command to wait for the ECS task and fetch the ENI
-resource "null_resource" "wait_for_task_and_fetch_eni" {
-  depends_on = [ aws_ecs_service.jenkins_web_service ]
-  provisioner "local-exec" {
-    command = "aws ecs wait services-stable --cluster ${var.jenkins_cluster_id} --services ${aws_ecs_service.jenkins_web_service.name} --region ${var.region}"
-  }
-}
-
-data "aws_network_interface" "interface_tags" {
-  depends_on = [ null_resource.wait_for_task_and_fetch_eni]
-  filter {
-    name   = "tag:aws:ecs:serviceName"
-    values = [aws_ecs_service.jenkins_web_service.name]
-  }
-}
-
-
 resource "null_resource" "jenkins_agent_node" {
-  depends_on = [ null_resource.wait_for_task_and_fetch_eni ]
+  depends_on = [module.load_balancer, null_resource.wait_for_task_and_fetch_eni]
   # This will make sure the resource is recreated if the Jenkins URL changes
   triggers = {
-    jenkins_url = "http://${data.aws_network_interface.interface_tags.association[0].public_ip}:8080"
+    jenkins_url  = "http://${module.load_balancer.jenkins_web_dns}"
     runner_count = var.jenkins_runner_count
   }
 
   provisioner "local-exec" {
     command = <<EOF
       # Wait for Jenkins to be up
-      until curl -s -o /dev/null -w "%%{http_code}" ${self.triggers.jenkins_url} | grep -q "403\|200"; do
-        echo "Waiting for Jenkins to be up..."
+      while true; do
+        # Get status code from the curl command
+        status_code=$(curl -s -o /dev/null -w "%%{http_code}" ${self.triggers.jenkins_url})
+
+        if [ "$status_code" = "200" ] || [ "$status_code" = "403" ]; then
+          echo "Jenkins is up with status code $status_code."
+          break
+        elif [ "$status_code" = "503" ]; then
+          echo "Service unavailable (503), continuing to wait..."
+        else
+          echo "Unexpected status code: $status_code, continuing to wait..."
+        fi
+
         sleep 10
       done
 
@@ -74,8 +68,8 @@ resource "null_resource" "jenkins_agent_node" {
 }
 
 data "local_file" "jenkins_output" {
-  depends_on = [ null_resource.jenkins_agent_node ]
-  filename = "/tmp/jenkins_output.txt"
+  depends_on = [null_resource.jenkins_agent_node]
+  filename   = "/tmp/jenkins_output.txt"
 }
 
 output "agent_secret" {

@@ -1,9 +1,13 @@
-output "web_server_subnet_id" {
-  value = aws_subnet.ecs_vpc_public_subnet.id
+output "public_subnet_ids" {
+  value = [for subnet in aws_subnet.ecs_vpc_public_subnets : subnet.id]
 }
 
-output "runner_subnet_id" {
-  value = aws_subnet.ecs_vpc_private_subnet.id
+output "private_subnet_ids" {
+  value = [for subnet in aws_subnet.ecs_vpc_private_subnets : subnet.id]
+}
+
+output "alb_security_group" {
+  value = module.alb_network.alb_security_group
 }
 
 output "web_server_security_group" {

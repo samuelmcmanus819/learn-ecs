@@ -1,0 +1,20 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Deny",
+        "Action": [
+          "ecs:CreateService",
+          "ecs:UpdateService",
+          "ecs:RegisterTaskDefinition"
+        ],
+        "Resource": "*",
+        "Condition": {
+          "ForAnyValue:StringEquals": {
+            "ecs:AssignPublicIp": "ENABLED"
+          }
+        }
+      }
+    ]
+  }
+  

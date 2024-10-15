@@ -7,8 +7,9 @@ resource "aws_efs_file_system" "jenkins_volume" {
 
 
 resource "aws_efs_mount_target" "jenkins_volume_mount" {
+  count           = length(var.jenkins_web_subnet_ids)
   file_system_id  = aws_efs_file_system.jenkins_volume.id
-  subnet_id       = var.jenkins_web_subnet_id
+  subnet_id       = var.jenkins_web_subnet_ids[count.index]
   security_groups = [var.jenkins_efs_security_group]
 }
 

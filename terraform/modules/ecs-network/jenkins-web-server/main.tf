@@ -8,24 +8,20 @@ resource "aws_security_group" "web_server_sg" {
   }
 }
 
-# Web server is intended to be used universally
-#trivy:ignore:AVD-AWS-0107
-resource "aws_vpc_security_group_ingress_rule" "allow_web_server_http" {
-  security_group_id = aws_security_group.web_server_sg.id
-  cidr_ipv4         = "0.0.0.0/0"
-  from_port         = 8080
-  ip_protocol       = "tcp"
-  to_port           = 8080
+resource "aws_vpc_security_group_ingress_rule" "allow_alb_http" {
+  security_group_id            = aws_security_group.web_server_sg.id
+  referenced_security_group_id = var.alb_security_group
+  from_port                    = 8080
+  ip_protocol                  = "tcp"
+  to_port                      = 8080
 }
 
-# Web server is intended to be used universally
-#trivy:ignore:AVD-AWS-0107
-resource "aws_vpc_security_group_ingress_rule" "allow_web_server_http_ipv6" {
-  security_group_id = aws_security_group.web_server_sg.id
-  cidr_ipv6         = "::/0"
-  from_port         = 8080
-  ip_protocol       = "tcp"
-  to_port           = 8080
+resource "aws_vpc_security_group_ingress_rule" "allow_runner_http" {
+  security_group_id            = aws_security_group.web_server_sg.id
+  referenced_security_group_id = var.runner_sg
+  from_port                    = 8080
+  ip_protocol                  = "tcp"
+  to_port                      = 8080
 }
 
 resource "aws_vpc_security_group_ingress_rule" "allow_efs_from_ecs" {

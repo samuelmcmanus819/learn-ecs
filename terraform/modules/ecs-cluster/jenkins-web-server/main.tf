@@ -4,11 +4,18 @@
 #   retention_in_days = 30
 # }
 
+module "load_balancer" {
+  source             = "./load-balancer"
+  alb_security_group = var.alb_security_group
+  alb_subnet_ids     = var.alb_subnet_ids
+  vpc_id             = var.jenkins_vpc_id
+}
+
 resource "aws_ecs_task_definition" "jenkins_web_task" {
   family                   = "jenkins-web-task"
   network_mode             = "awsvpc" # Required for Fargate
-  cpu                      = "1024"    # 1 vCPU
-  memory                   = "2048"    # 2 MiB
+  cpu                      = "1024"   # 1 vCPU
+  memory                   = "2048"   # 2 MiB
   requires_compatibilities = ["FARGATE"]
   execution_role_arn       = var.execution_role_arn
   task_role_arn            = var.task_role_arn
@@ -23,7 +30,7 @@ resource "aws_ecs_task_definition" "jenkins_web_task" {
       hostPort      = 8080
       protocol      = "tcp"
       appProtocol   = "http"
-    }, {
+      }, {
       name          = "jnlp"
       containerPort = 50000
       hostPort      = 50000
@@ -32,10 +39,10 @@ resource "aws_ecs_task_definition" "jenkins_web_task" {
     environment = [{
       name  = "JENKINS_ADMIN_ID"
       value = var.jenkins_admin_username
-    },
-    {
-      name  = "JAVA_OPTS"
-      value = "-Djenkins.install.runSetupWizard=false"
+      },
+      {
+        name  = "JAVA_OPTS"
+        value = "-Djenkins.install.runSetupWizard=false"
     }]
     secrets = [
       {
@@ -52,7 +59,7 @@ resource "aws_ecs_task_definition" "jenkins_web_task" {
       }, {
       sourceVolume  = "jenkins_certs"
       containerPath = "/certs/client"
-      }],
+    }],
     # logConfiguration = {
     #     logDriver = "awslogs"
     #     options = {
@@ -87,20 +94,26 @@ resource "aws_ecs_task_definition" "jenkins_web_task" {
 }
 
 resource "aws_ecs_service" "jenkins_web_service" {
-  name            = "jenkins_web_service"
-  cluster         = var.jenkins_cluster_id
-  task_definition = aws_ecs_task_definition.jenkins_web_task.arn
-  desired_count   = 1
-  deployment_maximum_percent = 100
+  name                               = "jenkins_web_service"
+  cluster                            = var.jenkins_cluster_id
+  task_definition                    = aws_ecs_task_definition.jenkins_web_task.arn
+  health_check_grace_period_seconds  = 600
+  desired_count                      = 1
+  deployment_maximum_percent         = 100
   deployment_minimum_healthy_percent = 0
-  launch_type     = "FARGATE" # Specifies Fargate
-  enable_execute_command = true
-  enable_ecs_managed_tags = true
+  launch_type                        = "FARGATE" # Specifies Fargate
+  enable_execute_command             = true
+  enable_ecs_managed_tags            = true
+
+  load_balancer {
+    target_group_arn = module.load_balancer.target_group_arn
+    container_name   = "jenkins_web"
+    container_port   = 8080
+  }
 
   network_configuration {
-    subnets          = [var.jenkins_web_subnet_id]
-    security_groups  = [var.jenkins_web_security_group]
-    assign_public_ip = true
+    subnets         = var.jenkins_web_subnet_ids
+    security_groups = [var.jenkins_web_security_group]
   }
 }
 
